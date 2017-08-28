@@ -1,4 +1,4 @@
-# Keyword_Object_Detection
+# Keyword Object Detection
 Finds objects in images using "Keywords" in Hough space. Uses OpenCV and MongoDB
 
 # Documentation

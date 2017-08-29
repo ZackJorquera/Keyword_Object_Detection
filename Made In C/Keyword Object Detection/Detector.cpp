@@ -1,13 +1,10 @@
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "Detector.h"
+#include "MongoReaderWriter.h"
 
-using namespace cv;
 using namespace std;
 
 

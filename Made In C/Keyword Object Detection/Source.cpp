@@ -1,16 +1,9 @@
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
 
 #include "Trainer.h"
 #include "Detector.h"
 
-using namespace cv;
 using namespace std;
-
 
 
 int main(int argNums, char** argv)
@@ -24,7 +17,10 @@ int main(int argNums, char** argv)
 	if (string(argv[1]) == "train")
 	{
 		cout << "Training Mode:" << endl;
-		return Train();
+		if (argNums > 2)
+			return Train(string(argv[2]));
+		else
+			return Train("");
 	}
 	else if (string(argv[1]) == "find")
 	{
@@ -36,4 +32,5 @@ int main(int argNums, char** argv)
 		cout << "Invalade selection:" << endl << "Selection input is case sensitive and all lower case" << endl;
 		return -1;
 	}
+	return 0;
 }

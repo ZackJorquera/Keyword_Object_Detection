@@ -1,3 +1,3 @@
 #pragma once
 
-int Train();
+int Train(std::string);

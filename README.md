@@ -1,5 +1,5 @@
 # Keyword Object Detection
-The idea is to make an image finding algorithm that you train by giving it images. How it trains: it goes looks for common key images with detail that are prevalent in each image and makes a “keyword” out of that. Each key word also contains a vector that points to the center of the object. The keywords are put it into a database so they can be accessed late easily. To find things in the image it used the “keywords” and uses a correlation algorithm to find the best match and then places its center where the vector places it. After all the keywords have been correlated than the place with the most predicted center is the center of the object. This is explained more in depth in the hough section of the first one: here.
+The idea is to make an image finding algorithm that you train by giving it images. How it trains: it goes looks for common key images with detail that are prevalent in each image and makes a “keyword” out of that. Each key word also contains a vector that points to the center of the object. The keywords are put it into a database so they can be accessed late easily. To find things in the image it used the “keywords” and uses a correlation algorithm to find the best match and then places its center where the vector places it. After all the keywords have been correlated than the place with the most predicted center is the center of the object. This is explained more in depth in the hough section of the first one: [here](https://github.com/ZackJorquera/ComputerVisionLineAndCircleFinding).
 
 # Theory
 ## Finding the object with the “keywords”
@@ -9,7 +9,7 @@ This function will take an input of multiple similar images of the object in the
 The program starts with the first image and splits into boxes of features (uses a threshold image to find these boxes). It then repeats this step for all of the other images giving a lot of section of the images(add a case if there is a car with 2 wheels). Then it looks through each of the images to find if any of the features that are similar and adds those to a list like a stack of similar things. When finding the similarity it scales the to features to similar sizes in a “test bench” as to key the original and applies a correlation algorithm that takes into account overlap and rotation. When the lists are made each image is the combined to each other image at the point where the best correlation was relative to the first image. This will make a blurred image ready for use as a keyword. The range for the vector is given by the range at which each images thing lies.
 
 # Documentation
-c++ Documentation be found [Here](https://github.com/ZackJorquera/Keyword_Object_Detection/blob/master/Made%20In%20C/README.md) and Java documentation [Here](https://github.com/ZackJorquera/Keyword_Object_Detection/blob/master/Made%20In%20Java/README.md)
+c++ Documentation can be found [Here](https://github.com/ZackJorquera/Keyword_Object_Detection/blob/master/Made%20In%20C/README.md) and Java documentation [Here](https://github.com/ZackJorquera/Keyword_Object_Detection/blob/master/Made%20In%20Java/README.md)
 
 # Info 
 Made By: Zack Jorquera

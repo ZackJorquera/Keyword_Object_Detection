@@ -1,7 +1,8 @@
+
 # Documentation
 
 ## Getting OpenCV to work with vs2017 (Visual Studios 2017)
-This was a painful process in with hardly anything got done. In the end, everything works fine. The steps to get this to work are as fallow:
+This was a painful process in with hardly anything got done. In the end, everything works fine. The steps to get this to work are as follow:
 
 ### Step 1
 Download the latest OpenCV windows package: [here](http://opencv.org/releases.html) and build to the c drive or the programs folder.
@@ -16,3 +17,8 @@ Still in the properties panel under Build Events -> Pre-Build Event in the "Comm
 
 ### Step 4
 For future use, you can export it as a visual studios project template through Project -> Export Template.
+
+## MongoDB c++ driver
+Download and instruction are [here](http://mongodb.github.io/mongo-cxx-driver/mongocxx-v3/installation/). I use boost with mongo.
+
+[MongoDB](https://www.mongodb.com/) is an open source, free, NoSQL database service that has drivers for c#, c++, java, and more. The reason I chose to use mongo is that I will be needing to store the keywords some how and mongo has the functionality to let me do this easily (some what). mongo allows me to add and find items in the form of a JSON document(well, really it is BSON) with in millisecond even with millions of document. with mongo, you can have small images stored up to a 16mb limit per document.

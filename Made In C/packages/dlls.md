@@ -1,11 +1,13 @@
-bsoncxx.dll
+pakages that would be here.
 
-libbson-1.0.dll
+bsoncxx.dll - from the mongo c++ package
 
-libmongoc-1.0.dll
+libbson-1.0.dll - from the mongo c package
 
-mongocxx.dll
+libmongoc-1.0.dll - from the mongo c package
 
-opencv_world330.dll
+mongocxx.dll - from the mongo c++ package
 
-opencv_world330d.dll
+opencv_world330.dll - from the OpenCV package
+
+opencv_world330d.dll - from the OpenCV package (debug version)

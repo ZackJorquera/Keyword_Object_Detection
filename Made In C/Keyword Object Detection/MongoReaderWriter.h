@@ -7,7 +7,7 @@
 #include "mongocxx\instance.hpp"
 #include "mongocxx\stdx.hpp"
 #include "mongocxx\uri.hpp"
-#include "mongocxx\instance.hpp""
+#include "mongocxx\instance.hpp"
 
 using bsoncxx::builder::stream::close_array;
 using bsoncxx::builder::stream::close_document;

@@ -1,4 +1,3 @@
-
 # Documentation
 
 ## Getting OpenCV to work with vs2017 (Visual Studios 2017)
@@ -22,3 +21,21 @@ For future use, you can export it as a visual studios project template through P
 Download and instruction are [here](http://mongodb.github.io/mongo-cxx-driver/mongocxx-v3/installation/). I use boost with mongo.
 
 [MongoDB](https://www.mongodb.com/) is an open source, free, NoSQL database service that has drivers for c#, c++, java, and more. The reason I chose to use mongo is that I will be needing to store the keywords some how and mongo has the functionality to let me do this easily (some what). mongo allows me to add and find items in the form of a JSON document(well, really it is BSON) with in millisecond even with millions of document. with mongo, you can have small images stored up to a 16mb limit per document.
+
+## Getting OpenCV to work
+a lot of unforeseen things happened when doing this, that is why this is two days past the deadline and still not done. the unforeseen things that happened include:
+
+- When that features are found there are duplicates of the same image but in different sizes
+- no correlation algorithm exist in OpenCV that searches out of frame
+- a gradient image of a gray scale image has a different size
+- more things that I forgot about that are less affecting to the code
+
+What I did in the update of [74e81da](https://github.com/ZackJorquera/Keyword_Object_Detection/commit/74e81dabaa1c1d03880c0b3baafe2c00c9933d5c#diff-e1951ecf1e6d4e22fd96296ad8b3fb43):
+
+- I made a function that gets that most relevant feature in the image by using a gradient image that shows edges and how strong those edges are from the brightness.
+- Made a function that finds the correlation between two images and return that offset value (still being made)
+- a function that adds two images together with an offset and returns an image that is a square around the intersection of the image
+- some other minor image transformation stuff that openCV did not have that way I wanted it
+
+in total, i mostly finished the feature correlation for the same image and made code to be used for the cross image correlation.
+

@@ -37,5 +37,7 @@ What I did in the update of [74e81da](https://github.com/ZackJorquera/Keyword_Ob
 - a function that adds two images together with an offset and returns an image that is a square around the intersection of the image
 - some other minor image transformation stuff that openCV did not have the way I wanted it
 
-in total, i mostly finished the feature correlation for the same image and made code to be used for the cross image correlation.
+in total, I mostly finished the feature correlation for the same image and made code to be used for the cross image correlation.
 
+## making the CorrelateFeaturesCrossImage function
+The goal was to have every image in each list look at all the other images lists and find what matches. at each iteration of this, a new list of features is made of the matching images where the first object in the list is the primary images and following that are all of the matches with the location at which they matched. When all cycles finish and a list of lists of features is made acting as a list of keywords waiting to be made it then cycles through that adding all the image together at every level. in this prosses, it skips every list which head feature is a feature which was in a previous list.

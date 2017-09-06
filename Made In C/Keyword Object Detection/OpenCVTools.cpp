@@ -10,16 +10,16 @@ using namespace std;
 
 int windowNum = 1;
 
-list<Mat>* LoadImages(list<string> paths, ImreadModes im)
+list<Mat> LoadImages(list<string> paths, ImreadModes im)
 {
-	list<Mat>* imgs = new list<Mat>();
+	list<Mat> imgs;
 	for each (string path in paths)
 	{
 		if (path == "")
 			continue;
 		Mat temp = imread(path, im);
 		if(temp.dims != 0)
-			(*imgs).push_back(temp);
+			imgs.push_back(temp);
 	}
 	return imgs;
 }
@@ -114,14 +114,14 @@ cv::Mat MakeMatFromRange(cv::Point start, cv::Point end, cv::Mat* image)
 	}
 }
 
-bool DoesCorralationReachThreshold(Mat image, Mat templ, float maxRot, float threshold, Point *location)
+bool DoesCorralationReachThreshold(Mat image, Mat templ, float maxRot, float threshold, Point *location, bool scaleImg2ToMatchRows)
 {
 	//Make my own so that it searches the edges better
 	try
 	{
 		Mat result;
 
-		matchTemplate(templ, image, result, CV_TM_CCORR_NORMED);//get a Correlation map
+		matchTemplate(templ, image, result, CV_TM_CCORR_NORMED);//get a Correlation map also TODO: make my own of this that get overlap
 		//normalize(result, result, 0, 1, NORM_, -1, Mat());// macks from 0 to 1
 
 		/*
@@ -152,10 +152,8 @@ bool DoesCorralationReachThreshold(Mat image, Mat templ, float maxRot, float thr
 	}
 }
 
-int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, float ratio, bool cropEdgesToSquare)//addes img2 to img1 with an offset of offSet
+int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, float ratio, bool cropEdgesToSquare)//addes img2 to img1 with an offset of offSet. the ratio is the present of img1, img2's present is found with 1-ratio
 {
-	// cropEdgesNotAddedTogether refers to the pixels that are not going to be added
-
 	int intersect[4];//startx starty endx endy
 	int xIntersect;
 	int yIntersect;
@@ -243,7 +241,7 @@ int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, float ratio, bo
 			else
 				img2Val = -1;
 			
-			uchar temp = img1Val * ((img2Val != -1) ? ratio : 1) + img2Val * ((img1Val != -1) ? 1 - ratio : 1);
+			uchar temp = uchar(img1Val * ((img2Val != -1) ? ratio : 1) + img2Val * ((img1Val != -1) ? 1 - ratio : 1));//does this work TODO:
 			resultTemp.at<uchar>(Point(resultX, resultY)) = temp;
 		}
 	}

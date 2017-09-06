@@ -1,4 +1,4 @@
-# Keyword Object Detection
+﻿# Keyword Object Detection
 The idea is to make an image finding an algorithm that you by giving it training images. How it trains: it looks for common key images with detail that are prevalent in each image and makes a “keyword” out of that. Each key word also contains a vector that points to the center of the object. The keywords are put into a database so they easily can be accessed later. To find things in the image it used the “keywords” and uses a correlation algorithm to find the best match and then places its center where the vector places it. After all the keywords have been correlated, then the place with the most predicted center is the center of the object. This is explained more in depth in the hough section of the first one: [here](https://github.com/ZackJorquera/ComputerVisionLineAndCircleFinding).
 
 # Theory
@@ -13,4 +13,5 @@ c++ Documentation can be found [Here](https://github.com/ZackJorquera/Keyword_Ob
 
 # Info 
 Made By: Zack Jorquera
+
 For: Mrs Root's IB/AP CS class at Centaurus High

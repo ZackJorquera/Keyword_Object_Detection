@@ -9,7 +9,7 @@ using namespace std;
 
 
 
-int Find()
+int Find(string arg)
 {
 	cout << "in Find()" << endl;
 	return 0;

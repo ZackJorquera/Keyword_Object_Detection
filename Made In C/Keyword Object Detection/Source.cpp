@@ -24,7 +24,7 @@ int main(int argNums, char** argv)
 	else if (string(argv[1]) == "find")
 	{
 		cout << "Detection Mode:" << endl;
-		return Find();
+		return Find("");
 	}
 	else
 	{

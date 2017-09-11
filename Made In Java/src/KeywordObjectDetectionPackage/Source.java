@@ -1,9 +1,11 @@
 package KeywordObjectDetectionPackage;
 
-import KeywordObjectDetectionPackage.Trainer;
+//import KeywordObjectDetectionPackage.Trainer;
 
 public class Source 
 {
+	static OpenCVTools CVTools = new OpenCVTools();
+	
 	public static void main(String[] args)//Does java count the first arg as the file when called in the cmd 
 	{
 		if (args.length < 2)
@@ -15,7 +17,7 @@ public class Source
 
 		if (args[1].equals("train"))
 		{
-			Trainer tr = new Trainer();
+			Trainer tr = new Trainer(CVTools);
 			System.out.println("Training Mode:");
 			if (args.length > 2)
 				tr.Train(args[2]);
@@ -24,7 +26,7 @@ public class Source
 		}
 		else if (args[1].equals("find"))
 		{
-			Detector de = new Detector();
+			Detector de = new Detector(CVTools);
 			System.out.println("Detection Mode:");
 			de.Find("");
 		}

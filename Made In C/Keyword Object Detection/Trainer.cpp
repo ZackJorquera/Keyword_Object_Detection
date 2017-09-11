@@ -76,7 +76,8 @@ int Train(string arg)
 	}
 	//TODO: cross list corralation 
 	//then add the images together (EVENYLY just halfing will not work)
-	list<feature> keywords = CorrelateFeaturesCrossImage(&keyFeaturesPerImage);
+	if(keyFeaturesPerImage.size() > 1)
+		list<feature> keywords = CorrelateFeaturesCrossImage(&keyFeaturesPerImage);
 
 	return 0;
 }
@@ -118,16 +119,8 @@ void CorrelateImageFeatures(list<feature>* keyFeatures)
 						--featureIteratorFromBack;
 						continue;
 					}
-					if (featureIterator->grayScale.cols == featureIteratorFromBack->grayScale.cols && featureIterator->rating >= featureIteratorFromBack->rating)//if(image 1 == image 2 && image1.rating > image2.rating) <- in size
-					{
-						img1 = &*featureIterator;
-						img2 = &*featureIteratorFromBack;
-					}
-					else
-					{
-						img1 = &*featureIteratorFromBack;
-						img2 = &*featureIterator;
-					}
+					img1 = &*featureIteratorFromBack;
+					img2 = &*featureIterator;
 				}
 
 				AddImagesAt(&(img1->grayScale), &(img2->grayScale), &(img1->grayScale), locationOfTemplate, 0.5f, true);
@@ -194,7 +187,8 @@ void GetInputImages(list<string>* imageFiles)
 		{
 			thisImage = "";
 			getline(cin, thisImage);
-			imageFiles->push_back(thisImage);
+			if(thisImage != "")
+				imageFiles->push_back(thisImage);
 		}
 	}
 }
@@ -232,7 +226,7 @@ list<feature> GetMostImportantPartsOfImage(cv::Mat *grayImage, int maxFeatures, 
 		}
 	}
 
-	if(Features.size() == 0)
+	if(Features.size() < maxFeatures/2)
 		Features = GetMostImportantPartsOfImage(grayImage, maxFeatures, xStepSizePersentOfImage, 0, 0, 0, maxfeatureSizeInSteps, minfeatureSizeInSteps);
 
 	Features.sort(useRating);

@@ -3,11 +3,13 @@
 *.class
 *.dll
 *.exe
+*.pdb
+*.ipdb
+*.iobj
+*.obj
 
 # Packages #
 ############
-# it's better to unpack these files and commit the raw source
-# git has its own built in compression methods
 *.7z
 *.dmg
 *.gz
@@ -16,8 +18,11 @@
 *.rar
 *.tar
 *.zip
+*.tlog
+*.lastbuildstate
 
-
+# Folders #
+###########
 Made\ In\ C/.vs/
 Made\ In\ C/Keyword Object Detection/x64/
 Made\ In\ C/x64/

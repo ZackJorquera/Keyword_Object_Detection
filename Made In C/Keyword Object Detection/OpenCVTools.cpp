@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "OpenCVTools.h"
+#include <ppl.h>
  
 using namespace cv;
 using namespace std;
@@ -18,8 +19,14 @@ list<Mat> LoadImages(list<string> paths, ImreadModes im)
 		if (path == "")
 			continue;
 		Mat temp = imread(path, im);
-		if(temp.dims != 0)
+		if (temp.dims != 0)
+		{
 			imgs.push_back(temp);
+		}
+		else
+		{
+			cout << path << " no dims." << endl;
+		}
 	}
 	return imgs;
 }
@@ -114,14 +121,55 @@ cv::Mat MakeMatFromRange(cv::Point start, cv::Point end, cv::Mat* image)
 	}
 }
 
-bool DoesCorralationReachThreshold(Mat image, Mat templ, float maxRot, float threshold, Point *location, bool scaleImg2ToMatchRows)
+void doOneCorrelation(Mat *image, Mat *templ, float maxRot, Point p, Mat *result)
+{
+	int sharedPixels = 0;
+	double correlation = 0;
+
+	for (int templX = 0; templX < templ->cols; templX++)
+	{
+		for (int templY = 0; templY < templ->rows; templY++)
+		{
+			int imageX = p.x - (templ->cols / 2) + templX;
+			int imageY = p.y - (templ->rows / 2) + templY;
+
+			if (imageX >= 0 && imageX < image->cols && imageY >= 0 && imageY < image->rows)
+			{
+				sharedPixels++;
+
+				int absDiff = std::abs(templ->at<uchar>(Point(templX, templY)) - image->at<uchar>(Point(imageX, imageY)));
+				float thisCorrelation = (1 - (float(absDiff) / 255));
+				correlation += thisCorrelation;//expand
+
+			}
+			else
+				continue;
+		}
+	}
+
+	float sharedPixelPresent = float(sharedPixels) / (templ->cols * templ->rows);
+	correlation = ((correlation / sharedPixels) * 4 + sharedPixelPresent) / 5;
+
+	uchar temp = uchar(correlation * 255);
+	result->at<uchar>(p) = temp;
+}
+
+bool DoesCorrelationReachThreshold(Mat image, Mat templ, float maxRot, float threshold, Point *location, bool scaleImg2ToMatchRows)
 {
 	//Make my own so that it searches the edges better
 	try
 	{
-		Mat result;
+		Mat result(image.rows, image.cols, DataType<uchar>::type);
 
-		matchTemplate(templ, image, result, CV_TM_CCORR_NORMED);//get a Correlation map also TODO: make my own of this that get overlap
+		Concurrency::parallel_for(0, image.rows, [&](int y)//uses threading in a for loop
+		{
+			for (int x = 0; x < image.cols; x++)
+			{
+				doOneCorrelation(&image, &templ, maxRot, Point(x, y), &result);
+			}
+		});
+
+		//matchTemplate(templ, image, result, CV_TM_CCORR_NORMED);//get a Correlation map also TODO: make my own of this that get overlap
 		//normalize(result, result, 0, 1, NORM_, -1, Mat());// macks from 0 to 1
 
 		/*
@@ -138,9 +186,9 @@ bool DoesCorralationReachThreshold(Mat image, Mat templ, float maxRot, float thr
 
 		minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
 
-		*location = maxLoc;
+		*location = cv::Point(maxLoc.x - (templ.cols / 2), maxLoc.y - (templ.rows / 2));
 
-		if (maxVal > threshold)
+		if (maxVal/255 >= threshold)
 			return true;
 		else
 			return false;
@@ -154,6 +202,7 @@ bool DoesCorralationReachThreshold(Mat image, Mat templ, float maxRot, float thr
 
 int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, float ratio, bool cropEdgesToSquare)//addes img2 to img1 with an offset of offSet. the ratio is the present of img1, img2's present is found with 1-ratio
 {
+	//TODO: this throws sometimes due to being out of range
 	int intersect[4];//startx starty endx endy
 	int xIntersect;
 	int yIntersect;
@@ -219,9 +268,9 @@ int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, float ratio, bo
 		endY = resultTemp.rows -1;
 	}
 
-	for (int x = startX; x < endX + 1; x++)//x = img1X
+	for (int x = startX; x < endX; x++)//x = img1X
 	{
-		for (int y = startY; y < endY + 1; y++)//y = img1Y
+		for (int y = startY; y < endY; y++)//y = img1Y
 		{
 			int img2X = x - offSet.x;
 			int img2Y = y - offSet.y;
@@ -232,16 +281,25 @@ int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, float ratio, bo
 			uchar img1Val;
 			uchar img2Val;
 
+			bool inImg1 = true;
+			bool inImg2 = true;
+
 			if (x >= 0 && x < img1->cols && y >= 0 && y < img1->rows)
 				img1Val = img1->at<uchar>(Point(x, y));
 			else
-				img1Val = -1;
+			{
+				inImg1 = false;
+				img1Val = 0;
+			}
 			if (img2X >= 0 && img2X < img2->cols && img2Y >= 0 && img2Y < img2->rows)
 				img2Val = img2->at<uchar>(Point(img2X, img2Y));
 			else
-				img2Val = -1;
+			{
+				inImg2 = false;
+				img2Val = 0;
+			}
 			
-			uchar temp = uchar(img1Val * ((img2Val != -1) ? ratio : 1) + img2Val * ((img1Val != -1) ? 1 - ratio : 1));//does this work TODO:
+			uchar temp = uchar(img1Val * ((inImg2) ? ratio : 1) + img2Val * ((inImg1) ? 1 - ratio : 1));//does this work TODO:
 			resultTemp.at<uchar>(Point(resultX, resultY)) = temp;
 		}
 	}

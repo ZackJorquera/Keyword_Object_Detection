@@ -6,26 +6,29 @@ import org.opencv.imgcodecs.Imgcodecs;
 
 public class Trainer 
 {
-	OpenCVTools cvTools = new OpenCVTools();
+	private OpenCVTools _cvTools;
+	private Scanner _scanner;
 	
-	public Trainer() {}
+	public Trainer(OpenCVTools CVTools) 
+	{
+		_cvTools = CVTools;
+		_scanner = new Scanner(System.in); 
+	}
 	
 	public int Train(String arg)
-	{
-		Scanner scanner = new Scanner(System.in); 
-		
+	{	
 		String objectName;
 		List<String> imageFiles;
 		List<Mat> grayScaleimages;
 		 
 		System.out.println("Info: the center of the image will be used as the center of the object. for the best results please crop the object to the edges of the image so that only the object is classifyed as the object.");
 		
-		imageFiles = GetInputImages(scanner);
+		imageFiles = GetInputImages(_scanner);
 
 		System.out.print("please ender the name of the object in the images: ");
-		objectName = scanner.nextLine();
+		objectName = _scanner.nextLine();
 
-		grayScaleimages = cvTools.LoadImages(imageFiles, Imgcodecs.IMREAD_GRAYSCALE);
+		grayScaleimages = _cvTools.LoadImages(imageFiles, Imgcodecs.IMREAD_GRAYSCALE);
 		
 		return 0;
 	}

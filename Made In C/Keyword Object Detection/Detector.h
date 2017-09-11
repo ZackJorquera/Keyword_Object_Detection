@@ -1,3 +1,3 @@
 #pragma once
 
-int Find();
+int Find(std::string arg);

@@ -13,6 +13,8 @@ int windowNum = 1;
 
 list<Mat> LoadImages(list<string> paths, ImreadModes im)
 {
+	if (windowNum > 50)
+		return;
 	list<Mat> imgs;
 	for each (string path in paths)
 	{
@@ -148,7 +150,7 @@ void doOneCorrelation(Mat *image, Mat *templ, float maxRot, Point p, Mat *result
 	}
 
 	float sharedPixelPresent = float(sharedPixels) / (templ->cols * templ->rows);
-	correlation = ((correlation / sharedPixels) * 4 + sharedPixelPresent) / 5;
+	correlation = ((correlation / sharedPixels) * 3 + sharedPixelPresent) / 4;//add the ratio to the config file
 
 	uchar temp = uchar(correlation * 255);
 	result->at<uchar>(p) = temp;
@@ -156,7 +158,6 @@ void doOneCorrelation(Mat *image, Mat *templ, float maxRot, Point p, Mat *result
 
 bool DoesCorrelationReachThreshold(Mat image, Mat templ, float maxRot, float threshold, Point *location, bool scaleImg2ToMatchRows)
 {
-	//Make my own so that it searches the edges better
 	try
 	{
 		Mat result(image.rows, image.cols, DataType<uchar>::type);
@@ -168,18 +169,6 @@ bool DoesCorrelationReachThreshold(Mat image, Mat templ, float maxRot, float thr
 				doOneCorrelation(&image, &templ, maxRot, Point(x, y), &result);
 			}
 		});
-
-		//matchTemplate(templ, image, result, CV_TM_CCORR_NORMED);//get a Correlation map also TODO: make my own of this that get overlap
-		//normalize(result, result, 0, 1, NORM_, -1, Mat());// macks from 0 to 1
-
-		/*
-		std::list <cv::Mat> t;
-		t.push_back(image);
-		t.push_back(templ);
-		t.push_back(result);
-		showImages(&t);
-		cv::waitKey(0);
-		//*/
 
 		double minVal, maxVal;
 		Point minLoc, maxLoc, matchLoc;
@@ -200,7 +189,7 @@ bool DoesCorrelationReachThreshold(Mat image, Mat templ, float maxRot, float thr
 	}
 }
 
-int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, float ratio, bool cropEdgesToSquare)//addes img2 to img1 with an offset of offSet. the ratio is the present of img1, img2's present is found with 1-ratio
+int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, Point* mainImageOffSet, float ratio, bool cropEdgesToSquare)//addes img2 to img1 with an offset of offSet. the ratio is the present of img1, img2's present is found with 1-ratio
 {
 	//TODO: this throws sometimes due to being out of range
 	int intersect[4];//startx starty endx endy
@@ -267,6 +256,7 @@ int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, float ratio, bo
 		endX = resultTemp.cols -1;
 		endY = resultTemp.rows -1;
 	}
+	*mainImageOffSet = Point(startX + mainImageOffSet->x, startY + mainImageOffSet->y);
 
 	for (int x = startX; x < endX; x++)//x = img1X
 	{

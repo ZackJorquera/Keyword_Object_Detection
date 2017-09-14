@@ -15,6 +15,7 @@ void GetInputImages(list<string>* imageFiles);
 bool useRating(const feature& first, const feature& second);
 void CorrelateImageFeatures(list<feature>* keyFeatures);
 list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachImage);
+list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists, int thresholdOfSharedImages);
 
 
 int Train(string arg)
@@ -76,98 +77,52 @@ int Train(string arg)
 	}
 	//TODO: cross list corralation 
 	//then add the images together (EVENYLY just halfing will not work)
-	if(keyFeaturesPerImage.size() > 1)
-		list<feature> keywords = CorrelateFeaturesCrossImage(&keyFeaturesPerImage);
+	list<feature> keywords;
+	if (keyFeaturesPerImage.size() > 1)
+		keywords = CorrelateFeaturesCrossImage(&keyFeaturesPerImage);
+	else if (keyFeaturesPerImage.size() == 1)
+		keywords = *keyFeaturesPerImage.begin();
+
+	//*
+	for (list<feature>::iterator iter = keywords.begin(); iter != keywords.end(); ++iter)
+	{
+		showImage(&iter->grayScale);
+	}
+	cv::waitKey(0);
+	//*/
 
 	return 0;
 }
 
 void CorrelateImageFeatures(list<feature>* keyFeatures)
 {
-	list<feature*> featuresToRemove;
+	list<list<pair<feature*, cv::Point>>> keywordLists;
+
 	list<feature>::iterator featureIterator = keyFeatures->begin();
 	for (int i = 0; i < keyFeatures->size(); i++)
 	{
+		list<pair<feature*, cv::Point>> keywordToBe;
+		keywordToBe.push_front(pair<feature*, cv::Point>(&*featureIterator, cv::Point(0, 0)));//added the first one
+
 		list<feature>::iterator featureIteratorFromBack = keyFeatures->end();
 		--featureIteratorFromBack;//becasue for some reason it grabs the item past the real last
 		for (int j = int(keyFeatures->size()) - (i + 1); j > 0; j--)//for (int j = int(keyFeatures->size()) - 1; j > i; j--) //TODO: look at more
 		{
 			float corralationThreshold = .85f;//TODO: add config file
-			cv::Point locationOfTemplate;
-			feature* img1;
-			feature* img2;
-
-			float addImageRatio = 0.5;
-
-
-			try
+					
+			pair<feature*, cv::Point> thisFeature;
+			thisFeature.first = &*featureIteratorFromBack;
+			if (DoesCorrelationReachThreshold(featureIterator->grayScale, featureIteratorFromBack->grayScale, 0.0, corralationThreshold, &thisFeature.second, false))
 			{
-				if (featureIterator->grayScale.cols > featureIteratorFromBack->grayScale.cols)//if(image 1 > image 2) <- in size
-				{
-					if (!DoesCorralationReachThreshold(featureIterator->grayScale, featureIteratorFromBack->grayScale, 0.0, corralationThreshold, &locationOfTemplate, false))
-					{
-						--featureIteratorFromBack;
-						continue;
-					}
-					img1 = &*featureIterator;//because  featureIterator is an iterator the star does not convert a point to an object it converts a list position to an object thus i have to then convert it to a pointer
-					img2 = &*featureIteratorFromBack;
-				}
-				else
-				{
-					if (!DoesCorralationReachThreshold(featureIteratorFromBack->grayScale, featureIterator->grayScale, 0.0, corralationThreshold, &locationOfTemplate, false))
-					{
-						--featureIteratorFromBack;
-						continue;
-					}
-					img1 = &*featureIteratorFromBack;
-					img2 = &*featureIterator;
-				}
-
-				AddImagesAt(&(img1->grayScale), &(img2->grayScale), &(img1->grayScale), locationOfTemplate, 0.5f, true);
-				for each(std::array<int, 4> range in img2->ranges)
-				{
-					range[0] = range[0] + locationOfTemplate.x;
-					range[1] = range[1] + locationOfTemplate.y;
-					range[2] = range[2] + locationOfTemplate.x;
-					range[3] = range[3] + locationOfTemplate.y;
-					img1->ranges.push_back(range);
-				}
-				showImage(&(img1->grayScale));
-				cv::waitKey(0);
-
-				featuresToRemove.push_back(img2);
-
-
-				--featureIteratorFromBack;
-				continue;
-			}
-			catch (cv::Exception ex)
-			{
-				cout << ex.what() << endl;
-			}
-			catch (std::exception ex)
-			{
-				cout << ex.what() << endl;
-			}
-			catch (...)
-			{
-
+				keywordToBe.push_back(thisFeature);
 			}
 			--featureIteratorFromBack;
 		}
+		keywordLists.push_back(keywordToBe);
+
 		++featureIterator;
 	}
-
-	list<feature*>::iterator it = featuresToRemove.begin();
-	for (int i = 0; i < featuresToRemove.size(); i++)
-	{
-		try
-		{
-			keyFeatures->remove(**it);//TODO: not building
-		}
-		catch(...){}
-		++it;
-	}
+	*keyFeatures = CreateKeywords(keywordLists, 0);
 	
 }
 
@@ -244,7 +199,6 @@ bool useRating(const feature& first, const feature& second)
 list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachImage)
 {
 	list<list<pair<feature*,cv::Point>>> keywordLists;
-	list<feature> outPut;
 
 	list<list<feature>>::iterator imageIterator = featuresForEachImage->begin();
 	for (int i = 0; i < featuresForEachImage->size(); i++)
@@ -252,7 +206,7 @@ list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachIm
 		list<feature>::iterator featureIterator = imageIterator->begin();
 		for (int j = 0; j < imageIterator->size(); j++)
 		{
-			list<pair<feature*, cv::Point>> keyword;// make list<feature*, point>
+			list<pair<feature*, cv::Point>> keyword;
 			keyword.push_front(pair<feature*, cv::Point>(&*featureIterator, cv::Point(0, 0)));
 
 			list<list<feature>>::iterator imageIteratorFromBack = featuresForEachImage->end();
@@ -264,7 +218,7 @@ list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachIm
 				{
 					pair<feature*, cv::Point> thisFeature;
 					thisFeature.first = &*featureIterator2;
-					if (DoesCorralationReachThreshold(featureIterator->grayScale, featureIterator2->grayScale, 0.0, .75, &thisFeature.second, true))//get from config
+					if (DoesCorrelationReachThreshold(featureIterator->grayScale, featureIterator2->grayScale, 0.0, .75, &thisFeature.second, true))//get from config
 					{
 						keyword.push_back(thisFeature);
 					}
@@ -280,26 +234,52 @@ list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachIm
 		}
 		++imageIterator;
 	}
+	
+	return CreateKeywords(keywordLists, 2);//add to config
+}
+
+list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists, int thresholdOfSharedImages)
+{
 	list<feature*> featuresAlreadyInKeywords;
+
+	list<feature> outPut;
 
 	list<list<pair<feature*, cv::Point>>>::iterator keywordIterator = keywordLists.begin();
 	for (int i = 0; i < keywordLists.size(); i++)
 	{
-		if (true /*featuresAlreadyInKeywords.size() <= 0|| keywordIterator->begin()->first exists in featuresAlreadyInKeywords*/)
+		if (!(featuresAlreadyInKeywords.size() > 0 && find(featuresAlreadyInKeywords.begin(), featuresAlreadyInKeywords.end(), keywordIterator->begin()->first) != featuresAlreadyInKeywords.end()))//!(greater that 0 and if the first feature in the keywordIterator is in the list of featuresAlreadyInKeywords)
 		{
-			feature thisFeature = *keywordIterator->begin()->first;
-
-			list<pair<feature*, cv::Point>>::iterator keywordImageIterator = keywordIterator->begin();
-			++keywordImageIterator;//the first one is the header image that all the other image will be added to
-			for (int j = 1; j < keywordIterator->size(); j++)
+			if (keywordIterator->size() >= thresholdOfSharedImages)
 			{
-				AddImagesAt(&(keywordIterator->begin()->first->grayScale), &(keywordImageIterator->first->grayScale), &thisFeature.grayScale, keywordImageIterator->second, 1 - (1/(float(j) + 1)), true);
-				featuresAlreadyInKeywords.push_back(keywordImageIterator->first);
-				//TODO: add range vectors
-				++keywordImageIterator;
-			}
+				feature thisFeature = *keywordIterator->begin()->first;
 
-			outPut.push_back(thisFeature);
+				cv::Point mainImageOffSet(0, 0);
+
+				list<pair<feature*, cv::Point>>::iterator keywordImageIterator = keywordIterator->begin();
+				++keywordImageIterator;//the first one is the header image that all the other image will be added to
+				for (int j = 1; j < keywordIterator->size(); j++)
+				{
+					AddImagesAt(
+						&thisFeature.grayScale, 
+						&(keywordImageIterator->first->grayScale), 
+						&thisFeature.grayScale, 
+						cv::Point(keywordImageIterator->second.x - mainImageOffSet.x, keywordImageIterator->second.y - mainImageOffSet.y), 
+						&mainImageOffSet, 
+						1 - (1 / (float(j) + 1)), 
+						true);
+
+					featuresAlreadyInKeywords.push_back(keywordImageIterator->first);//TODO: make it not work if it is in this
+					//TODO: add range vectors
+					showImage(&(keywordImageIterator->first->grayScale));
+
+					++keywordImageIterator;
+				}
+				showImage(&keywordIterator->begin()->first->grayScale);
+				showImage(&thisFeature.grayScale);
+				cv::waitKey(0);
+
+				outPut.push_back(thisFeature);
+			}
 		}
 		++keywordIterator;
 	}

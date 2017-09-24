@@ -1,11 +1,17 @@
 #include <iostream>
 #include <list>
+#include <array>
 #include <sstream>
 #include <stdlib.h>
 #include <stdio.h>
+#include <fstream>
+
+#include "boost\uuid\uuid.hpp"
+#include "boost\uuid\uuid_io.hpp"
+#include "boost\uuid\uuid_generators.hpp"
+#include "boost\filesystem.hpp"
 
 #include "Trainer.h"
-#include "MongoReaderWriter.h"
 #include "OpenCVTools.h"
 
 using namespace std;
@@ -16,6 +22,8 @@ bool useRating(const feature& first, const feature& second);
 void CorrelateImageFeatures(list<feature>* keyFeatures);
 list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachImage);
 list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists, int thresholdOfSharedImages);
+int SaveMultipleAsImgFiles(std::string folderPath, std::string folderName, std::list<feature>* images);
+int SaveOneAsImgFile(std::string folderPath, std::string folderName, feature* image);
 
 
 int Train(string arg)
@@ -75,13 +83,14 @@ int Train(string arg)
 		++keyFeaturesIterator;
 		//see if there are any duplicets in the list like two tires on a car and combine them this means there will be a list of vetor range things
 	}
-	//TODO: cross list corralation 
 	//then add the images together (EVENYLY just halfing will not work)
 	list<feature> keywords;
 	if (keyFeaturesPerImage.size() > 1)
 		keywords = CorrelateFeaturesCrossImage(&keyFeaturesPerImage);
 	else if (keyFeaturesPerImage.size() == 1)
 		keywords = *keyFeaturesPerImage.begin();
+
+	SaveMultipleAsImgFiles("C:\\KeywordImages\\", objectName, &keywords);
 
 	//*
 	for (list<feature>::iterator iter = keywords.begin(); iter != keywords.end(); ++iter)
@@ -123,7 +132,7 @@ void CorrelateImageFeatures(list<feature>* keyFeatures)
 		++featureIterator;
 	}
 	*keyFeatures = CreateKeywords(keywordLists, 0);
-	
+
 }
 
 void GetInputImages(list<string>* imageFiles)
@@ -165,11 +174,11 @@ list<feature> GetMostImportantPartsOfImage(cv::Mat *grayImage, int maxFeatures, 
 			{
 				feature f;
 				f.gradientImage = MakeMatFromRange(cv::Point(x * pps, y * pps), cv::Point((x + s) * pps, (y + s) * pps), &gradImg);
-				f.grayScale = MakeMatFromRange(cv::Point(x * pps, y * pps), cv::Point((x + s) * pps, (y + s) * pps), grayImage);
+				f.grayScale = TotalMatAddByOne(MakeMatFromRange(cv::Point(x * pps, y * pps), cv::Point((x + s) * pps, (y + s) * pps), grayImage));
 				f.GetRating();
 				if (f.rating < thresholdPresent)
 					continue;
-				std::array<int, 4> range;//for c++ you have to use std::array in order to have an array in a list
+				std::array <int, 4> range;//for c++ you have to use std::array in order to have an array in a list
 				range[0] = (gradImg.cols/2) - x;
 				range[1] = ((gradImg.cols + 1) / 2) - x;
 				range[2] = (gradImg.rows / 2) - y;
@@ -285,4 +294,42 @@ list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists,
 	}
 
 	return outPut;
+}
+
+int SaveMultipleAsImgFiles(std::string folderPath, std::string folderName, std::list<feature>* images)
+{
+	for each (feature image in *images)
+	{
+		SaveOneAsImgFile(folderPath, folderName, &image);
+	}
+	return 0;
+}
+
+int SaveOneAsImgFile(std::string folderPath, std::string folderName, feature* image)
+{
+	boost::filesystem::path dir(folderPath + folderName);
+	if (!boost::filesystem::exists(dir))
+		if (!boost::filesystem::create_directory(dir))
+			return -1;
+
+	boost::uuids::uuid uuid = boost::uuids::random_generator()();
+	std::string filePath = folderPath + folderName + "\\" + to_string(uuid) + ".jpg";
+
+	imwrite(filePath, image->grayScale);
+
+	ofstream myfile;
+	myfile.open(folderPath + folderName + "\\" + to_string(uuid) + ".vctrinf");
+	myfile << "#Vector Info for keyword: " << uuid << endl;
+	for each (std::array<int,4> vector in image->ranges)
+	{
+		myfile << "[" << endl;
+		myfile << vector[0] << endl;
+		myfile << vector[1] << endl;
+		myfile << vector[2] << endl;
+		myfile << vector[3] << endl;
+		myfile << "]" << endl;
+	}
+	myfile.close();
+
+	return 0;
 }

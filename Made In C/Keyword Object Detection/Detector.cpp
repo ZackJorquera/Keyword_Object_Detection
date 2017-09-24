@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 #include "Detector.h"
-#include "MongoReaderWriter.h"
 
 using namespace std;
 

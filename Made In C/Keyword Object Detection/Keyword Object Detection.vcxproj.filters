@@ -24,9 +24,6 @@
     <ClCompile Include="Detector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MongoReaderWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenCVTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,9 +33,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Detector.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MongoReaderWriter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenCVTools.h">

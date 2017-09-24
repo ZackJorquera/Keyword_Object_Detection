@@ -5,6 +5,11 @@
 
 #include "OpenCVTools.h"
 #include <ppl.h>
+
+#include "boost\uuid\uuid.hpp"
+#include "boost\uuid\uuid_io.hpp"
+#include "boost\uuid\uuid_generators.hpp"
+#include "boost\filesystem.hpp"
  
 using namespace cv;
 using namespace std;
@@ -13,8 +18,6 @@ int windowNum = 1;
 
 list<Mat> LoadImages(list<string> paths, ImreadModes im)
 {
-	if (windowNum > 50)
-		return;
 	list<Mat> imgs;
 	for each (string path in paths)
 	{
@@ -274,21 +277,40 @@ int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, Point* mainImag
 			bool inImg1 = true;
 			bool inImg2 = true;
 
-			if (x >= 0 && x < img1->cols && y >= 0 && y < img1->rows)
+			if (x >= 0 && x < img1->cols && y >= 0 && y < img1->rows)//if a pixel is 0 then it is a undefined pixel to counteract this everything is given one
+			{
 				img1Val = img1->at<uchar>(Point(x, y));
+				if (img1Val == 0)
+				{
+					inImg1 = false;
+					img1Val = 0;
+				}
+			}
 			else
 			{
 				inImg1 = false;
 				img1Val = 0;
 			}
 			if (img2X >= 0 && img2X < img2->cols && img2Y >= 0 && img2Y < img2->rows)
+			{
 				img2Val = img2->at<uchar>(Point(img2X, img2Y));
+				if (img2Val == 0)
+				{
+					inImg2 = false;
+					img2Val = 0;
+				}
+			}
 			else
 			{
 				inImg2 = false;
 				img2Val = 0;
 			}
-			
+
+			if (!(inImg1 || inImg2))
+			{
+				int a = 0;
+			}
+
 			uchar temp = uchar(img1Val * ((inImg2) ? ratio : 1) + img2Val * ((inImg1) ? 1 - ratio : 1));//does this work TODO:
 			resultTemp.at<uchar>(Point(resultX, resultY)) = temp;
 		}
@@ -296,4 +318,20 @@ int AddImagesAt(Mat* img1, Mat* img2, Mat* result, Point offSet, Point* mainImag
 
 	*result = resultTemp;
 	return 0;
+}
+
+Mat TotalMatAddByOne(Mat image)
+{
+	for (int x = 0; x < image.cols; x++)
+	{
+		for (int y = 0; y < image.rows; y++)
+		{
+			uchar val = image.at<uchar>(Point(x, y));
+			if (val == 255)
+				continue;
+			val++;
+			image.at<uchar>(Point(x, y)) = val;
+		}
+	}
+	return image;
 }

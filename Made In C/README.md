@@ -49,3 +49,5 @@ This change was a necessary thing to make because the OpenCV template matcher on
 
 ## Removing mongo
 Im no longer going to use mongo, I have moved to just saving the images in a jpg and having another file to save the vector data. Each file is named a random GUID as not to need to deal with two files of the same name. Because of this change, I have fully removed the mongo CP files. 
+
+I have also started to use boost to write to the files.

@@ -88,6 +88,7 @@ copy "$(ProjectDir)..\packages\libmongoc-1.0.dll" "$(TargetDir)";</Command>
     <ClCompile Include="Trainer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConfigReader.h" />
     <ClInclude Include="Detector.h" />
     <ClInclude Include="OpenCVTools.h" />
     <ClInclude Include="Trainer.h" />

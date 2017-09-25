@@ -21,7 +21,7 @@ struct feature
 					totalEdgepixels++;
 			}
 		}
-		rating = float(totalEdgepixels) / (gradientImage.cols * gradientImage.rows) * 100;
+		rating = float(totalEdgepixels) / (gradientImage.cols * gradientImage.rows);
 	}
 
 	bool operator==(const feature& feature1) const//this allows me to use the == operator and what is shown below is what it does

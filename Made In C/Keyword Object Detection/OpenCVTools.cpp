@@ -153,7 +153,7 @@ void doOneCorrelation(Mat *image, Mat *templ, float maxRot, Point p, Mat *result
 	}
 
 	float sharedPixelPresent = float(sharedPixels) / (templ->cols * templ->rows);
-	correlation = ((correlation / sharedPixels) * 3 + sharedPixelPresent) / 4;//add the ratio to the config file
+	correlation = ((correlation / sharedPixels) * 3 + sharedPixelPresent * 1) / 4;//add the ratio to the config file ??? dont know how yet
 
 	uchar temp = uchar(correlation * 255);
 	result->at<uchar>(p) = temp;

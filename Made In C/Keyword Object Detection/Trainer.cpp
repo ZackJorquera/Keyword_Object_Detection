@@ -13,6 +13,7 @@
 
 #include "Trainer.h"
 #include "OpenCVTools.h"
+#include "ConfigReader.h"
 
 using namespace std;
 
@@ -28,6 +29,8 @@ int SaveOneAsImgFile(std::string folderPath, std::string folderName, feature* im
 
 int Train(string arg)
 {
+	ReadConfig();
+
 	list<string> imageFiles;
 	list<cv::Mat> grayScaleimages;
 	string objectName;
@@ -53,13 +56,24 @@ int Train(string arg)
 	WriteWordToMongo(objectName, test);
 	//*/
 
+	int maxFeatures, maxfeatureSizeInSteps, minfeatureSizeInSteps;
+	float xStepSizePersentOfImage, thresholdPresent;
+	string folderPath;
+
+	GetConfigVarsFromID(MaxInitialFeaturesTrainer) >> maxFeatures;
+	GetConfigVarsFromID(MaxStepSizeForFeatureTrainer) >> maxfeatureSizeInSteps;
+	GetConfigVarsFromID(MinStepSizeForFeatureTrainer) >> minfeatureSizeInSteps;
+	GetConfigVarsFromID(PercentOfImageWidthIsStepSizeTrainer) >> xStepSizePersentOfImage;
+	GetConfigVarsFromID(FeatureComplexityThresholdTrainer) >> thresholdPresent;
+	GetConfigVarsFromID(KeywordFolderPath) >> folderPath;
+
 	list<list<feature>> keyFeaturesPerImage;
 
 	//Gets all posable features that could be used for finding for each image
 	list<cv::Mat>::iterator it = grayScaleimages.begin(); ////(*it) is the object in the list at i
 	for (int i = 0; i < grayScaleimages.size(); i++)
 	{
-		list<feature> t = GetMostImportantPartsOfImage(&*it, 10, 10, 0,0,30,3,2);//TODO: add a config file that stores the file
+		list<feature> t = GetMostImportantPartsOfImage(&*it, maxFeatures, xStepSizePersentOfImage, 0, 0, thresholdPresent,maxfeatureSizeInSteps,minfeatureSizeInSteps);
 		keyFeaturesPerImage.push_back(t);
 
 		/*shows the images in t
@@ -90,9 +104,9 @@ int Train(string arg)
 	else if (keyFeaturesPerImage.size() == 1)
 		keywords = *keyFeaturesPerImage.begin();
 
-	SaveMultipleAsImgFiles("C:\\KeywordImages\\", objectName, &keywords);
+	SaveMultipleAsImgFiles(folderPath, objectName, &keywords);
 
-	//*
+	/*
 	for (list<feature>::iterator iter = keywords.begin(); iter != keywords.end(); ++iter)
 	{
 		showImage(&iter->grayScale);
@@ -117,8 +131,9 @@ void CorrelateImageFeatures(list<feature>* keyFeatures)
 		--featureIteratorFromBack;//becasue for some reason it grabs the item past the real last
 		for (int j = int(keyFeatures->size()) - (i + 1); j > 0; j--)//for (int j = int(keyFeatures->size()) - 1; j > i; j--) //TODO: look at more
 		{
-			float corralationThreshold = .85f;//TODO: add config file
-					
+			float corralationThreshold;
+			GetConfigVarsFromID(ImageCorralationThresholdTrainer) >> corralationThreshold;
+
 			pair<feature*, cv::Point> thisFeature;
 			thisFeature.first = &*featureIteratorFromBack;
 			if (DoesCorrelationReachThreshold(featureIterator->grayScale, featureIteratorFromBack->grayScale, 0.0, corralationThreshold, &thisFeature.second, false))
@@ -227,7 +242,11 @@ list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachIm
 				{
 					pair<feature*, cv::Point> thisFeature;
 					thisFeature.first = &*featureIterator2;
-					if (DoesCorrelationReachThreshold(featureIterator->grayScale, featureIterator2->grayScale, 0.0, .75, &thisFeature.second, true))//get from config
+
+					float threshold;
+					GetConfigVarsFromID(CrossImageCorralationThresholdTrainer) >> threshold;
+
+					if (DoesCorrelationReachThreshold(featureIterator->grayScale, featureIterator2->grayScale, 0.0, threshold, &thisFeature.second, true))
 					{
 						keyword.push_back(thisFeature);
 					}
@@ -244,7 +263,7 @@ list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachIm
 		++imageIterator;
 	}
 	
-	return CreateKeywords(keywordLists, 2);//add to config
+	return CreateKeywords(keywordLists, featuresForEachImage->size() - ceil(featuresForEachImage->size()/5));
 }
 
 list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists, int thresholdOfSharedImages)
@@ -279,13 +298,13 @@ list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists,
 
 					featuresAlreadyInKeywords.push_back(keywordImageIterator->first);//TODO: make it not work if it is in this
 					//TODO: add range vectors
-					showImage(&(keywordImageIterator->first->grayScale));
+					//showImage(&(keywordImageIterator->first->grayScale));
 
 					++keywordImageIterator;
 				}
-				showImage(&keywordIterator->begin()->first->grayScale);
-				showImage(&thisFeature.grayScale);
-				cv::waitKey(0);
+				//showImage(&keywordIterator->begin()->first->grayScale);
+				//showImage(&thisFeature.grayScale);
+				//cv::waitKey(0);
 
 				outPut.push_back(thisFeature);
 			}

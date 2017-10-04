@@ -82,6 +82,7 @@ copy "$(ProjectDir)..\packages\libmongoc-1.0.dll" "$(TargetDir)";</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ConfigReader.cpp" />
     <ClCompile Include="Detector.cpp" />
     <ClCompile Include="OpenCVTools.cpp" />
     <ClCompile Include="Source.cpp" />

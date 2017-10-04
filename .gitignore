@@ -20,6 +20,7 @@
 *.zip
 *.tlog
 *.lastbuildstate
+*.cfg
 
 # Folders #
 ###########

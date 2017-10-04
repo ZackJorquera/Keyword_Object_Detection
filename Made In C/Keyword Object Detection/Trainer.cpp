@@ -263,7 +263,7 @@ list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachIm
 		++imageIterator;
 	}
 	
-	return CreateKeywords(keywordLists, featuresForEachImage->size() - ceil(featuresForEachImage->size()/5));
+	return CreateKeywords(keywordLists, int(featuresForEachImage->size()) - ceil(featuresForEachImage->size()/5));
 }
 
 list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists, int thresholdOfSharedImages)

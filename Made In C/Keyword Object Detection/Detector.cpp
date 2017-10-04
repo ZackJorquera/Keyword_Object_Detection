@@ -34,7 +34,7 @@ int Find(string arg)
 
 	list<string> thingsToFind;
 
-	cout << "Info: ....\n";
+	cout << "Info: Finds where different pre-trained objects are in an image.\n";
 
 	cout << "Image file location: ";
 

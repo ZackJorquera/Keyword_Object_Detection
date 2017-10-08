@@ -23,11 +23,11 @@ Download and instruction are [here](http://mongodb.github.io/mongo-cxx-driver/mo
 [MongoDB](https://www.mongodb.com/) is an open source, free, NoSQL database service that has drivers for c#, c++, java, and more. The reason I chose to use mongo is that I will need to store the keywords somehow and mongo has the functionality to let me do this easily (somewhat). Mongo allows me to add and find items in the form of a JSON document(well, really it is BSON) within millisecond even with millions of document. With mongo, you can have small images stored up to a 16mb limit per document.
 
 ## Getting OpenCV to work
-A lot of unforeseen things happened when doing this, that is why this is two days past the deadline and still not completed. the unforeseen things that happened include:
+A lot of unforeseen things happened when doing this, that is why this is two days past the deadline and still not completed. The unforeseen things that happened include:
 
 - When the features are found there are duplicates of the same image but in different sizes
 - no correlation algorithm exists in OpenCV that searches out of frame
-- a gradient image of a gray scale image has a different size
+- a gradient image of a grayscale image has a different size
 - more things that I forgot about that are less affecting to the code
 
 What I did in the update of [74e81da](https://github.com/ZackJorquera/Keyword_Object_Detection/commit/74e81dabaa1c1d03880c0b3baafe2c00c9933d5c#diff-e1951ecf1e6d4e22fd96296ad8b3fb43):
@@ -51,3 +51,6 @@ This change was a necessary thing to make because the OpenCV template matcher on
 Im no longer going to use mongo, I have moved to just saving the images in a jpg and having another file to save the vector data. Each file is named a random GUID as not to need to deal with two files of the same name. Because of this change, I have fully removed the mongo CP files. 
 
 I have also started to use boost to write to the files.
+
+## Detection
+This function just reads the data from the saved feature folders and then finds the thing with the keywords. For reading the folder system, I used boost because its simplicity in doing things like this.  The function that accumulates the possible locations for the objects is roughly what was in the line and circle finding algorithm which means this it was fairly simple to make the accumulator. To make it even easier I used OpenCV's pre-build matchTemplate function.

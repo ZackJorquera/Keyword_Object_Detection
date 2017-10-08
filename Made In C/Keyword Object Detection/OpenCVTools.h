@@ -20,3 +20,5 @@ bool DoesCorrelationReachThreshold(cv::Mat image, cv::Mat templ, float maxRot, f
 int AddImagesAt(cv::Mat* img1, cv::Mat* img2, cv::Mat* result, cv::Point offSet, cv::Point* mainImageOffSet, float ratio, bool cropEdgesToSquare);//addes img2 to img1 with an offset of offSet. the ratio is the present of img1, img2's present is found with 1-ratio
 
 cv::Mat TotalMatAddByOne(cv::Mat image);
+
+cv::Mat correlateWithConvolution(cv::Mat src, cv::Mat templ);

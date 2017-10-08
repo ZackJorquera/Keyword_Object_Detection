@@ -335,3 +335,18 @@ Mat TotalMatAddByOne(Mat image)
 	}
 	return image;
 }
+
+Mat correlateWithConvolution(Mat src, Mat templ)
+{
+	try
+	{
+		Mat result;
+		matchTemplate(src, templ, result, CV_TM_CCORR_NORMED);
+
+		return result;
+	}
+	catch (cv::Exception ex)
+	{
+		std::cout << ex.what() << endl;
+	}
+}

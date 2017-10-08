@@ -194,10 +194,10 @@ list<feature> GetMostImportantPartsOfImage(cv::Mat *grayImage, int maxFeatures, 
 				if (f.rating < thresholdPresent)
 					continue;
 				std::array <int, 4> range;//for c++ you have to use std::array in order to have an array in a list
-				range[0] = (gradImg.cols/2) - x;
-				range[1] = ((gradImg.cols + 1) / 2) - x;
-				range[2] = (gradImg.rows / 2) - y;
-				range[3] = ((gradImg.rows + 1) / 2) - y;
+				range[0] = (gradImg.cols / 2) - (x)*pps;//TODO: does not work
+				range[1] = ((gradImg.cols + 1) / 2) - (x - 0.5f)*pps;
+				range[2] = (gradImg.rows / 2) - (y)*pps;
+				range[3] = ((gradImg.rows + 1) / 2) - (y - 0.5f)*pps;
 				f.ranges.push_back(range);
 				//TODO: fix the issue where the images are all the same thing but diffrent sizes
 				Features.push_back(f);

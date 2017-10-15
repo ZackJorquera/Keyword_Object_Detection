@@ -2,8 +2,10 @@
 #include <sstream>
 #include <stdlib.h>
 #include <stdio.h>
+#include <array>
 
 #include "OpenCVTools.h"
+#include "Trainer.h"
 #include <ppl.h>
 
 #include "boost\uuid\uuid.hpp"
@@ -13,6 +15,8 @@
  
 using namespace cv;
 using namespace std;
+
+bool useValue(const pair<float, Point>& first, const pair<float, Point>& second);
 
 int windowNum = 1;
 
@@ -349,4 +353,161 @@ Mat correlateWithConvolution(Mat src, Mat templ)
 	{
 		std::cout << ex.what() << endl;
 	}
+}
+
+Mat HoughFeatureAccumulater(list<feature> features, Mat src, float PresentOfBinSizeForOutput)
+{
+	Mat H(floor(1 / double(PresentOfBinSizeForOutput)), floor(1 / double(PresentOfBinSizeForOutput)), cv::DataType<double>::type, cv::Scalar(0));
+	int HRowSize = int(ceil(double(src.rows) * double(PresentOfBinSizeForOutput)));
+	int HColSize = int(ceil(double(src.cols) * double(PresentOfBinSizeForOutput)));
+
+	for each (feature thisFeature in features)
+	{
+		Mat result = correlateWithConvolution(src, thisFeature.grayScale);
+
+		/*
+		showImage(&result);
+		showImage(&thisFeature.grayScale);
+		showImage(&src);
+		waitKey(0);
+		//*/
+
+		list<pair<float, Point>> pixels = FindPeaks(result, -1, 0.9);//0.9
+		
+		if (pixels.size() > 0)
+		{
+			pixels.sort(useValue);
+
+			list<pair<float, Point>>::iterator iter = pixels.begin();
+			for (int i = 0; i < 3; i++)//TODO: from config also ingnor surounding pixels
+			{
+				for each (std::array<int, 4> range in thisFeature.ranges)
+				{
+					for (int x = range[0]; x < range[1]; x++)
+					{
+						for (int y = range[2]; y < range[3]; y++)
+						{
+							int xthing = (iter->second.x + x);
+							int xPoint = floor((int(iter->second.x) + x) / HColSize);
+							int yPoint = floor((int(iter->second.y + y)) / HRowSize);
+							Point p(xPoint, yPoint);
+							if (p.x >= 0 && p.x < H.cols && p.y >= 0 && p.y < H.rows)
+							{
+								H.at<double>(p)++;
+								double t = H.at<double>(p);
+							}
+						}
+					}
+				}
+				++iter;
+			}
+		}
+	}
+	return H;
+}
+
+bool useValue(const pair<float, Point>& first, const pair<float, Point>& second)
+{
+	return (first.first > second.first);
+}
+
+list<pair<float, Point>> FindPeaks(Mat image, int numOfPoints, float peakAmountThreshold)
+{
+	list<pair<float, Point>> allPeaks;
+	for (int x = 0; x < image.cols; x++)
+	{
+		for (int y = 0; y < image.rows; y++)
+		{
+			Point p;
+			pair<float, Point> pixel;
+
+			switch (image.depth())
+			{
+			case DataType<float>::depth:
+				p = Point(x, y);
+				pixel = pair<float, Point>(image.at<float>(p), p);
+				if (pixel.first > peakAmountThreshold)//from config
+					allPeaks.push_back(pixel);
+				break;
+			case DataType<double>::depth:
+				p = Point(x, y);
+				pixel = pair<float, Point>(float(image.at<double>(p)), p);
+				if (pixel.first > int(peakAmountThreshold))//from config
+					allPeaks.push_back(pixel);
+				break;
+			default:
+				p = Point(x, y);
+				pixel = pair<float, Point>(0, p);
+				break;
+			}
+		}
+	}
+
+	list<pair<float, Point>> topPeaks;
+
+	if (allPeaks.size() > 0)
+	{
+		allPeaks.sort(useValue);
+
+		list<Point> bannedPoints;
+
+		if (numOfPoints == -1)
+			return allPeaks;
+
+		list<pair<float, Point>>::iterator iter = allPeaks.begin();
+		for (int i = 0; i < numOfPoints; i++)
+		{
+			if (i >= allPeaks.size())
+				break;
+
+			bool allowed = true;
+			for each (Point bannedPoint in bannedPoints)
+			{
+				if (bannedPoint == iter->second)
+				{
+					allowed = false;
+					break;
+				}
+			}
+
+			if (allowed)
+				topPeaks.push_back(*iter);
+			else
+			{
+				i--;//resets
+				++iter;
+				continue;
+			}
+
+			int removeRadius = 15;
+			for (int surroundingX = -removeRadius; surroundingX <= removeRadius; surroundingX++)//TODO: config
+			{
+				for (int surroundingY = -removeRadius; surroundingY <= removeRadius; surroundingY++)
+				{
+					bannedPoints.push_back(Point(iter->second.x + surroundingX, iter->second.y + surroundingY));
+				}
+			}
+
+			++iter;
+		}
+	}
+	return topPeaks;
+}
+
+Mat DrawPointOnImage(Mat src, Point p, Scalar color, int size)
+{
+	for (int x = p.x - size / 2; x <= p.x + size / 2; x++)
+	{
+		for (int y = p.y - size / 2; y <= p.y + size / 2; y++)
+		{
+			if (x >= 0 && x < src.cols && y >= 0 && y < src.rows)
+			{
+				Point3_<uchar>* pixel = src.ptr<Point3_<uchar> >(y, x);
+				pixel->x = color[2];//B
+				pixel->y = color[1];//G
+				pixel->z = color[0];//R
+			}
+		}
+	}
+	return src;
 }

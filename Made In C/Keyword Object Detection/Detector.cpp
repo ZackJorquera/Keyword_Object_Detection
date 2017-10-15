@@ -23,8 +23,7 @@ list<string> GetObjectsToFind();
 list<pair<string, string>> GetFilePathsFromObjectNames(list<string> objects);
 list<string> SplitString(string text, char spliter);
 list<feature> CreateFeaturesFromFolderPath(string folderPath);
-Mat HoughFeatureAccumulater(list<feature> features, Mat src, float PresentOfImageForAccumulaterBinSizeForOutput);
-bool useValue(const pair<float, Point>& first, const pair<float, Point>& second);
+Mat MakeFoundImage(Mat src, float PresentOfBinSizeForOutput, list<pair<float, Point>> peaks);
 
 int Find(string arg)
 {
@@ -56,14 +55,25 @@ int Find(string arg)
 	{
 		string name = objectIter->first;
 		list<feature> thisObjectFeatures = CreateFeaturesFromFolderPath(objectIter->second);
-		
-		Mat accumulatedDataForObject = HoughFeatureAccumulater(thisObjectFeatures, grayImage, 0.01);//TODO: from config
-		normalize(accumulatedDataForObject, accumulatedDataForObject, 0, 1, NORM_MINMAX, -1, Mat());
-		showImage(&accumulatedDataForObject);
+		float PresentOfBinSizeForOutput = 0.002f;//TODO: from config
+		Mat accumulatedDataForObject = HoughFeatureAccumulater(thisObjectFeatures, grayImage, PresentOfBinSizeForOutput);
+
+		/*
+		Mat showImage = accumulatedDataForObject;
+		normalize(showImage, showImage, 0, 1, NORM_MINMAX, -1, Mat());
+		showImage(showImage);
 		waitKey(0);
+		//*/
+
+		list<pair<float, Point>> peaks = FindPeaks(accumulatedDataForObject, 3, 5);//TODO: config
+
+		colorImage = MakeFoundImage(colorImage, PresentOfBinSizeForOutput, peaks);
 
 		++objectIter;
 	}
+
+	showImage(&colorImage);
+	waitKey(0);
 
 	return 0;
 }
@@ -215,64 +225,15 @@ list<feature> CreateFeaturesFromFolderPath(string folderPath)
 	return l;
 }
 
-Mat HoughFeatureAccumulater(list<feature> features, Mat src, float PresentOfBinSizeForOutput)
+Mat MakeFoundImage(Mat src, float PresentOfBinSizeForOutput, list<pair<float, Point>> peaks)
 {
-	Mat H(floor(1/double(PresentOfBinSizeForOutput)), floor(1 / double(PresentOfBinSizeForOutput)), cv::DataType<double>::type, cv::Scalar(0));
 	int HRowSize = ceil(double(src.rows) * double(PresentOfBinSizeForOutput));
 	int HColSize = ceil(double(src.cols) * double(PresentOfBinSizeForOutput));
 
-	for each (feature thisFeature in features)
+	for each (pair<float, Point> peak in peaks)
 	{
-		Mat result = correlateWithConvolution(src, thisFeature.grayScale);
-
-		/*
-		showImage(&result);
-		showImage(&thisFeature.grayScale);
-		showImage(&src);
-		waitKey(0);
-		//*/
-
-		list<pair<float, Point>> pixels;
-		for (int x = 0; x < result.cols; x++)
-		{
-			for (int y = 0; y < result.rows; y++)
-			{
-				Point p(x, y);
-				pair<float, Point> pixel(result.at<float>(p), p);
-				if(pixel.first > 0.50)//from config
-					pixels.push_back(pixel);
-			}
-		}
-		pixels.sort(useValue);
-
-		list<pair<float, Point>>::iterator iter = pixels.begin();
-		for (int i = 0; i < 3; i++)//TODO: from config also ingnor surounding pixels
-		{
-			for each (array<int,4> range in thisFeature.ranges)
-			{
-				for (int x = range[0]; x < range[1]; x++)
-				{
-					for (int y = range[2]; y < range[3]; y++)
-					{
-						int xthing = (iter->second.x + x);
-						int xPoint = floor((int(iter->second.x) + x) / HColSize);
-						int yPoint = floor((int(iter->second.y + y)) / HRowSize);
-						Point p(xPoint, yPoint);
-						if (p.x >= 0 && p.x < H.cols && p.y >= 0 && p.y < H.rows)
-						{
-							H.at<double>(p)++;
-							double t = H.at<double>(p);
-						}
-					}
-				}
-			}
-			++iter;
-		}
+		DrawPointOnImage(src, Point(peak.second.x * HColSize, peak.second.y * HRowSize), Scalar(0, 255, 0), 7);
 	}
-	return H;
-}
 
-bool useValue(const pair<float, Point>& first, const pair<float, Point>& second)
-{
-	return (first.first > second.first);
+	return src;
 }

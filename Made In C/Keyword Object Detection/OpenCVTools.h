@@ -4,6 +4,8 @@
 #include "opencv2/core/traits.hpp"
 #include <list>
 
+#include "Trainer.h"
+
 #pragma once
 
 //All functions that are acsesable to call from the rest of the code
@@ -22,3 +24,9 @@ int AddImagesAt(cv::Mat* img1, cv::Mat* img2, cv::Mat* result, cv::Point offSet,
 cv::Mat TotalMatAddByOne(cv::Mat image);
 
 cv::Mat correlateWithConvolution(cv::Mat src, cv::Mat templ);
+
+cv::Mat HoughFeatureAccumulater(std::list<feature> features, cv::Mat src, float PresentOfImageForAccumulaterBinSizeForOutput);
+
+std::list<std::pair<float, cv::Point>> FindPeaks(cv::Mat image, int numOfPoints, float peakAmountThreshold);
+
+cv::Mat DrawPointOnImage(cv::Mat src, cv::Point p, cv::Scalar color, int size);

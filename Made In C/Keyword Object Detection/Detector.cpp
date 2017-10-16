@@ -58,14 +58,15 @@ int Find(string arg)
 		float PresentOfBinSizeForOutput = 0.002f;//TODO: from config
 		Mat accumulatedDataForObject = HoughFeatureAccumulater(thisObjectFeatures, grayImage, PresentOfBinSizeForOutput);
 
-		/*
-		Mat showImage = accumulatedDataForObject;
-		normalize(showImage, showImage, 0, 1, NORM_MINMAX, -1, Mat());
-		showImage(showImage);
+		//*
+		Mat theShowImage;
+		accumulatedDataForObject.copyTo(theShowImage);
+		normalize(theShowImage, theShowImage, 0, 1, NORM_MINMAX, -1, Mat());
+		showImage(&theShowImage);
 		waitKey(0);
 		//*/
 
-		list<pair<float, Point>> peaks = FindPeaks(accumulatedDataForObject, 3, 5);//TODO: config
+		list<pair<float, Point>> peaks = FindPeaks(accumulatedDataForObject, 10, 5);//TODO: config
 
 		colorImage = MakeFoundImage(colorImage, PresentOfBinSizeForOutput, peaks);
 

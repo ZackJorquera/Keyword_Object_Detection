@@ -455,7 +455,7 @@ list<pair<float, Point>> FindPeaks(Mat image, int numOfPoints, float peakAmountT
 			return allPeaks;
 
 		list<pair<float, Point>>::iterator iter = allPeaks.begin();
-		for (int i = 0; i < numOfPoints; i++)
+		for (int i = 0; topPeaks.size() < numOfPoints; i ++)
 		{
 			if (i >= allPeaks.size())
 				break;
@@ -474,12 +474,11 @@ list<pair<float, Point>> FindPeaks(Mat image, int numOfPoints, float peakAmountT
 				topPeaks.push_back(*iter);
 			else
 			{
-				i--;//resets
 				++iter;
 				continue;
 			}
 
-			int removeRadius = 15;
+			int removeRadius = 31;
 			for (int surroundingX = -removeRadius; surroundingX <= removeRadius; surroundingX++)//TODO: config
 			{
 				for (int surroundingY = -removeRadius; surroundingY <= removeRadius; surroundingY++)

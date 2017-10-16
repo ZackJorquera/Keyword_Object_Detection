@@ -297,6 +297,10 @@ list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists,
 						true);
 
 					featuresAlreadyInKeywords.push_back(keywordImageIterator->first);//TODO: make it not work if it is in this
+					
+					for each (array<int, 4> range in keywordImageIterator->first->ranges)
+						thisFeature.ranges.push_back(range);
+
 					//TODO: add range vectors
 					//showImage(&(keywordImageIterator->first->grayScale));
 

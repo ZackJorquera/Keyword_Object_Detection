@@ -55,7 +55,6 @@ I have also started to use boost to write to the files.
 ## Detection
 This function just reads the data from the saved feature folders and then finds the thing with the keywords. For reading the folder system, I used boost because its simplicity in doing things like this.  The function that accumulates the possible locations for the objects is roughly what was in the line and circle finding algorithm which means this it was fairly simple to make the accumulator. To make it even easier I used OpenCV's pre-build matchTemplate function.
 
-<<<<<<< HEAD
 ## Detection 2
 for now i just have it drawing a dot and with testing it can succesfuly find cars.
 
@@ -64,13 +63,13 @@ for now i just have it drawing a dot and with testing it can succesfuly find car
 # Documentation
 This code has two parts:
 1. The Trainer
-     1. Take input of n training images of which it finds the most edgy images as features then is finds 
-     2. part 2
-     3. part 3
-     4. Writes the keywords to a file
+     1. Take input of n training images 
+     2. For each training image, the program finds the most complicated parts
+     3. It looks for similarities in its image and then every other image
+     4. Comins all the similar images to make keywords
+     5. Writes the keywords to a file
 2. The Detector
-     1. part 1
-     2. part 2
-     3. part 3
-     4. part 4
-
+     1. Reads the keywords that were made in the Trainer
+     2. correlates each keyword
+     3. find the best spots for different keywords
+     4. draws boxes around the keywords

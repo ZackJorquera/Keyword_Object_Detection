@@ -11,20 +11,25 @@
 #pragma once
 
 std::list<std::string> ConfigVals;
+std::string ConfigVals2[ConfigVarsIDCount];
 std::string fileName = "config.cfg";
 ConfigVarsID configVars;
 
 void MakeConfigFile()
 {
 	const char configData[] = //must be in the same order as the ConfigVarsID
-		"10-i\n"
-		"10-f\n"
-		"0.3-f\n"
-		"3-i\n"
-		"2-i\n"
-		"0.85-f\n"
-		"0.75-f\n"
-		"C:\\KeywordImages\\-s\n"
+		"<MaxInitialFeaturesTrainer,0>10</MaxInitialFeaturesTrainer>\n"
+		"<PercentOfImageWidthIsStepSizeTrainer,1>10</PercentOfImageWidthIsStepSizeTrainer>\n"
+		"<FeatureComplexityThresholdTrainer,2>0.3</FeatureComplexityThresholdTrainer>\n"
+		"<MaxStepSizeForFeatureTrainer,3>3</MaxStepSizeForFeatureTrainer>\n"
+		"<MinStepSizeForFeatureTrainer,4>2</MinStepSizeForFeatureTrainer>\n"
+		"<ImageCorralationThresholdTrainer,5>0.85</ImageCorralationThresholdTrainer>\n"
+		"<CrossImageCorralationThresholdTrainer,6>0.75</CrossImageCorralationThresholdTrainer>\n"
+		"<KeywordFolderPath,7>C:\\KeywordImages\\</KeywordFolderPath>\n"
+		"<BinSizePercentOfImageDetector,8>0.002</BinSizePercentOfImageDetector>\n"
+		"<NumOfObjectsToFindPerObjectDetector,9>10</NumOfObjectsToFindPerObjectDetector>\n"
+		"<NumOfPeaksToBeObjectDetector,10>10</NumOfPeaksToBeObjectDetector>\n"
+		"<RadiusSurroundingPeaksToRemoveDetector,11>31</RadiusSurroundingPeaksToRemoveDetector>\n"
 		;
 
 	std::ofstream myfile;
@@ -36,7 +41,7 @@ void MakeConfigFile()
 void ReadConfig()
 {
 	struct stat buffer;
-	if (stat(fileName.c_str(), &buffer) != 0)//if file exists
+	if (stat(fileName.c_str(), &buffer) != 0)//if file does not exists
 		MakeConfigFile();
 
 	std::ifstream myfile(fileName, std::ifstream::in);
@@ -44,24 +49,28 @@ void ReadConfig()
 	{
 		std::string s;
 		myfile >> s;
-		if (s != "")
-			ConfigVals.push_back(s);
+		
+		if (s == "")
+			continue;
+
+		std::list<std::string> parts = SplitString(s, "<>, ");
+		std::string name(*parts.begin());
+		std::stringstream snum(*++parts.begin());
+		int num;
+		snum >> num;
+		std::string value(*++++parts.begin());
+		std::string ender(*++++++parts.begin());
+
+		if("/" + name == ender)//if name is the enum
+			ConfigVals2[num] = value;
+		else
+			ConfigVals2[num] = "";
 	}
 	myfile.close();
 }
 
 std::stringstream GetConfigVarsFromID(int id)
 {
-	if (ConfigVals.size() <= id)
-		ReadConfig();
-
-	std::list<std::string>::iterator iter = ConfigVals.begin();
-	for (int i = 0; i < id; i++)
-		++iter;
-
-	std::string s = *iter;
-	s.erase(----s.end(), s.end());
-	std::stringstream ss(s);
-
+	std::stringstream ss(ConfigVals2[id]);
 	return ss;
 }

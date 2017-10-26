@@ -12,7 +12,6 @@
 #include "boost\filesystem.hpp"
 
 #include "Detector.h"
-#include "Trainer.h"//just for the feature model
 #include "OpenCVTools.h"
 #include "ConfigReader.h"
 
@@ -21,9 +20,10 @@ using namespace cv;
 
 list<string> GetObjectsToFind();
 list<pair<string, string>> GetFilePathsFromObjectNames(list<string> objects);
-list<string> SplitString(string text, char spliter);
 list<feature> CreateFeaturesFromFolderPath(string folderPath);
-Mat MakeFoundImage(Mat src, float PresentOfBinSizeForOutput, list<pair<float, Point>> peaks);
+Mat DrawOnImage(Mat src, float PresentOfBinSizeForOutput, list<pair<float, Point>> peaks);
+
+bool ShowWorkImages;
 
 int Find(string arg)
 {
@@ -41,6 +41,8 @@ int Find(string arg)
 
 	cin >> imageFile;
 
+	ShowWorkImages = (arg == "-s");
+
 	thingsToFind = GetObjectsToFind();
 
 	list<string> tempList;
@@ -55,20 +57,31 @@ int Find(string arg)
 	{
 		string name = objectIter->first;
 		list<feature> thisObjectFeatures = CreateFeaturesFromFolderPath(objectIter->second);
-		float PresentOfBinSizeForOutput = 0.002f;//TODO: from config
-		Mat accumulatedDataForObject = HoughFeatureAccumulater(thisObjectFeatures, grayImage, PresentOfBinSizeForOutput);
+		float PresentOfBinSizeForOutput;
+		GetConfigVarsFromID(BinSizePercentOfImageDetector) >> PresentOfBinSizeForOutput;
+		int NumOfPeaksToBeObject;
+		GetConfigVarsFromID(NumOfPeaksToBeObjectDetector) >> NumOfPeaksToBeObject;
+		int numPoints;
+		GetConfigVarsFromID(NumOfObjectsToFindPerObjectDetector) >> numPoints;
+		int standerdRemoveRadius;
+		GetConfigVarsFromID(RadiusSurroundingPeaksToRemoveDetector) >> standerdRemoveRadius;
+
+		Mat accumulatedDataForObject = HoughFeatureAccumulater(thisObjectFeatures, grayImage, PresentOfBinSizeForOutput, standerdRemoveRadius, ShowWorkImages);
 
 		//*
-		Mat theShowImage;
-		accumulatedDataForObject.copyTo(theShowImage);
-		normalize(theShowImage, theShowImage, 0, 1, NORM_MINMAX, -1, Mat());
-		showImage(&theShowImage);
-		waitKey(0);
+		if (ShowWorkImages)
+		{
+			Mat theShowImage;
+			accumulatedDataForObject.copyTo(theShowImage);
+			normalize(theShowImage, theShowImage, 0, 1, NORM_MINMAX, -1, Mat());
+			showImage(&theShowImage);
+			waitKey(0);
+		}
 		//*/
 
-		list<pair<float, Point>> peaks = FindPeaks(accumulatedDataForObject, 10, 5);//TODO: config
+		list<pair<float, Point>> peaks = FindPeaks(accumulatedDataForObject, numPoints, NumOfPeaksToBeObject, standerdRemoveRadius);//TODO: config
 
-		colorImage = MakeFoundImage(colorImage, PresentOfBinSizeForOutput, peaks);
+		colorImage = DrawOnImage(colorImage, PresentOfBinSizeForOutput, peaks);
 
 		++objectIter;
 	}
@@ -132,7 +145,7 @@ list<pair<string, string>> GetFilePathsFromObjectNames(list<string> objects)
 			if (boost::filesystem::is_directory(dirIter->status()))
 			{
 				pair<string, string> objectNameAndPath;
-				objectNameAndPath.first = *--(SplitString(dirIter->path().string(),'\\').end());
+				objectNameAndPath.first = *--(SplitString(dirIter->path().string(),"\\").end());
 				objectNameAndPath.second = (dirIter->path().string() + "\\");
 				objectFilePaths.push_back(objectNameAndPath);
 				cout << objectNameAndPath.first << endl;
@@ -159,21 +172,9 @@ list<pair<string, string>> GetFilePathsFromObjectNames(list<string> objects)
 	return objectFilePaths;
 }
 
-list<string> SplitString(string text, char spliter)
-{
-	stringstream textstream(text);
-	string segment;
-	list<string> strings;
-
-	while (getline(textstream, segment, spliter))
-		strings.push_back(segment);
-
-	return strings;
-}
-
 list<feature> CreateFeaturesFromFolderPath(string folderPath)
 {
-	list<feature> l;
+	list<feature> thisList;
 
 	boost::filesystem::directory_iterator end;
 	boost::filesystem::path dir(folderPath);
@@ -192,7 +193,7 @@ list<feature> CreateFeaturesFromFolderPath(string folderPath)
 				imagePathList.push_back(fileName);
 				thisFeature.grayScale = *LoadImages(imagePathList, IMREAD_GRAYSCALE).begin();
 
-				fileName.erase(--------fileName.end(), fileName.end());//--------fileName.end() is the last 4
+				fileName.erase(--------fileName.end(), fileName.end());//--------fileName.end() is the last 4 so it erases ".jpg"
 
 				ifstream myfile(fileName + ".vctrinf", std::ifstream::in);
 				while (!myfile.eof())
@@ -219,14 +220,14 @@ list<feature> CreateFeaturesFromFolderPath(string folderPath)
 					}
 				}
 				myfile.close();
-				l.push_back(thisFeature);
+				thisList.push_back(thisFeature);
 			}
 		}
 	}
-	return l;
+	return thisList;
 }
 
-Mat MakeFoundImage(Mat src, float PresentOfBinSizeForOutput, list<pair<float, Point>> peaks)
+Mat DrawOnImage(Mat src, float PresentOfBinSizeForOutput, list<pair<float, Point>> peaks)
 {
 	int HRowSize = ceil(double(src.rows) * double(PresentOfBinSizeForOutput));
 	int HColSize = ceil(double(src.cols) * double(PresentOfBinSizeForOutput));

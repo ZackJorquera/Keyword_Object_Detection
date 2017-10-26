@@ -1,5 +1,7 @@
 #include <list>
 
+#include "Tools.h"
+
 #pragma once
 
 enum ConfigVarsID
@@ -12,7 +14,12 @@ enum ConfigVarsID
 	ImageCorralationThresholdTrainer = 5,
 	CrossImageCorralationThresholdTrainer = 6,
 	KeywordFolderPath = 7,
+	BinSizePercentOfImageDetector = 8,
+	NumOfObjectsToFindPerObjectDetector = 9,
+	NumOfPeaksToBeObjectDetector = 10,
+	RadiusSurroundingPeaksToRemoveDetector = 11,
 
+	ConfigVarsIDCount
 };
 
 void MakeConfigFile();

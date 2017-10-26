@@ -26,6 +26,8 @@ list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists,
 int SaveMultipleAsImgFiles(std::string folderPath, std::string folderName, std::list<feature>* images);
 int SaveOneAsImgFile(std::string folderPath, std::string folderName, feature* image);
 
+bool ShowImages;
+
 
 int Train(string arg)
 {
@@ -44,17 +46,13 @@ int Train(string arg)
 
 	grayScaleimages = LoadImages(imageFiles, cv::IMREAD_GRAYSCALE);
 
-	/*
-	if (arg == "-s")//shows the "keywords"
+	ShowImages = (arg == "-s");
+	//*
+	if (ShowImages)//shows the "keywords"
 	{
-		showImages(grayScaleimages);
+		showImages(&grayScaleimages);
 		cv::waitKey(0);
 	}
-
-	ConnectToMongoDB();
-	int test[4] = { 2,3,6,7 };
-	WriteWordToMongo(objectName, test);
-	//*/
 
 	int maxFeatures, maxfeatureSizeInSteps, minfeatureSizeInSteps;
 	float xStepSizePersentOfImage, thresholdPresent;
@@ -76,16 +74,17 @@ int Train(string arg)
 		list<feature> t = GetMostImportantPartsOfImage(&*it, maxFeatures, xStepSizePersentOfImage, 0, 0, thresholdPresent,maxfeatureSizeInSteps,minfeatureSizeInSteps);
 		keyFeaturesPerImage.push_back(t);
 
-		/*shows the images in t
-		list<feature>::iterator it2 = t.begin(); // this is how you read through a list in c++
-		for (int i = 0; i < t.size(); i++)
+		//*//shows the images in t
+		if (ShowImages)
 		{
-			list<cv::Mat> temp;
-			temp.push_back((*it2).featureGrayScale);
-			showImages(&temp);
-			++it2;
+			list<feature>::iterator it2 = t.begin(); // this is how you read through a list in c++
+			for (int i = 0; i < t.size(); i++)
+			{
+				showImage(&it2->grayScale);
+				++it2;
+			}
+			cv::waitKey(0);
 		}
-		cv::waitKey(0);
 		//*/
 		++it;//goes to the next object in the list, does not throw if it is moved to one that does not exist to this will work fine
 	}
@@ -106,12 +105,15 @@ int Train(string arg)
 
 	SaveMultipleAsImgFiles(folderPath, objectName, &keywords);
 
-	/*
-	for (list<feature>::iterator iter = keywords.begin(); iter != keywords.end(); ++iter)
+	//*
+	if (ShowImages)
 	{
-		showImage(&iter->grayScale);
+		for (list<feature>::iterator iter = keywords.begin(); iter != keywords.end(); ++iter)
+		{
+			showImage(&iter->grayScale);
+		}
+		cv::waitKey(0);
 	}
-	cv::waitKey(0);
 	//*/
 
 	return 0;
@@ -128,8 +130,8 @@ void CorrelateImageFeatures(list<feature>* keyFeatures)
 		keywordToBe.push_front(pair<feature*, cv::Point>(&*featureIterator, cv::Point(0, 0)));//added the first one
 
 		list<feature>::iterator featureIteratorFromBack = keyFeatures->end();
-		--featureIteratorFromBack;//becasue for some reason it grabs the item past the real last
-		for (int j = int(keyFeatures->size()) - (i + 1); j > 0; j--)//for (int j = int(keyFeatures->size()) - 1; j > i; j--) //TODO: look at more
+		--featureIteratorFromBack;//I do this becasue the iterator has an item at the end that is there to say there is no more items
+		for (int j = int(keyFeatures->size()) - 1; j > i; j--)
 		{
 			float corralationThreshold;
 			GetConfigVarsFromID(ImageCorralationThresholdTrainer) >> corralationThreshold;
@@ -179,27 +181,27 @@ list<feature> GetMostImportantPartsOfImage(cv::Mat *grayImage, int maxFeatures, 
 	list<feature> Features;
 	gradImg = GetGradientImage(*grayImage);
 
-	int pps = int(gradImg.cols / (100 / xStepSizePersentOfImage));//pixels per step. i use this the get square steps
+	int pixelsPerStep = int(gradImg.cols / (100 / xStepSizePersentOfImage));//pps is pixels per step
 
-	for (int x = 0; x < int(gradImg.cols/pps + 0.5f); x++)// the + 0.5f founds so that if there is > 1/2 step left over it counts that as one more step
+	for (int x = 0; x < int(ceil(gradImg.cols/ double(pixelsPerStep))); x++)
 	{
-		for (int y = 0; y < int(gradImg.rows / pps + 0.5f); y++)
+		for (int y = 0; y < int(ceil(gradImg.rows / double(pixelsPerStep))); y++)
 		{
 			for (int s = minfeatureSizeInSteps; s < maxfeatureSizeInSteps; s++)
 			{
 				feature f;
-				f.gradientImage = MakeMatFromRange(cv::Point(x * pps, y * pps), cv::Point((x + s) * pps, (y + s) * pps), &gradImg);
-				f.grayScale = TotalMatAddByOne(MakeMatFromRange(cv::Point(x * pps, y * pps), cv::Point((x + s) * pps, (y + s) * pps), grayImage));
+				f.gradientImage = MakeMatFromRange(cv::Point(x * pixelsPerStep, y * pixelsPerStep), cv::Point((x + s) * pixelsPerStep, (y + s) * pixelsPerStep), &gradImg, ShowImages);
+				f.grayScale = TotalMatAddByOne(MakeMatFromRange(cv::Point(x * pixelsPerStep, y * pixelsPerStep), cv::Point((x + s) * pixelsPerStep, (y + s) * pixelsPerStep), grayImage, ShowImages));
 				f.GetRating();
 				if (f.rating < thresholdPresent)
 					continue;
 				std::array <int, 4> range;//for c++ you have to use std::array in order to have an array in a list
-				range[0] = (gradImg.cols / 2) - (x)*pps;//TODO: does not work
-				range[1] = ((gradImg.cols + 1) / 2) - (x - 0.5f)*pps;
-				range[2] = (gradImg.rows / 2) - (y)*pps;
-				range[3] = ((gradImg.rows + 1) / 2) - (y - 0.5f)*pps;
+				range[0] = (gradImg.cols / 2) - (x)*pixelsPerStep;
+				range[1] = ((gradImg.cols + 1) / 2) - (x - 0.5f)*pixelsPerStep;
+				range[2] = (gradImg.rows / 2) - (y)*pixelsPerStep;
+				range[3] = ((gradImg.rows + 1) / 2) - (y - 0.5f)*pixelsPerStep;
 				f.ranges.push_back(range);
-				//TODO: fix the issue where the images are all the same thing but diffrent sizes
+																																																								//TODO: fix the issue where the images are all the same thing but diffrent sizes
 				Features.push_back(f);
 			}
 		}
@@ -220,7 +222,7 @@ bool useRating(const feature& first, const feature& second)
 	return (first.rating > second.rating);
 }
 
-list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachImage)
+list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachImage)//TODO: test
 {
 	list<list<pair<feature*,cv::Point>>> keywordLists;
 
@@ -235,7 +237,7 @@ list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachIm
 
 			list<list<feature>>::iterator imageIteratorFromBack = featuresForEachImage->end();
 			--imageIteratorFromBack;//becasue for some reason it grabs the item past the real last
-			for (int k = int(featuresForEachImage->size()) - (i + 1); k > 0; k--)//for (int k = int(featuresForEachImage->size()) - 1; k > i; k--) //TODO: look at more
+			for (int k = int(featuresForEachImage->size()) - 1; k > i; k--)
 			{
 				list<feature>::iterator featureIterator2 = imageIteratorFromBack->begin();
 				for (int l = 0; l < imageIterator->size(); l++)
@@ -302,13 +304,17 @@ list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists,
 						thisFeature.ranges.push_back(range);
 
 					//TODO: add range vectors
-					//showImage(&(keywordImageIterator->first->grayScale));
+					if(ShowImages)
+						showImage(&(keywordImageIterator->first->grayScale));
 
 					++keywordImageIterator;
 				}
-				//showImage(&keywordIterator->begin()->first->grayScale);
-				//showImage(&thisFeature.grayScale);
-				//cv::waitKey(0);
+				if (ShowImages)
+				{
+					showImage(&keywordIterator->begin()->first->grayScale);
+					showImage(&thisFeature.grayScale);
+					cv::waitKey(0);
+				}
 
 				outPut.push_back(thisFeature);
 			}

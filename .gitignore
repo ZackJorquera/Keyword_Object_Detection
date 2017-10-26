@@ -22,6 +22,12 @@
 *.lastbuildstate
 *.cfg
 
+# Images #
+##########
+*.jpg
+*.jpeg
+*.png
+
 # Folders #
 ###########
 Made\ In\ C/.vs/

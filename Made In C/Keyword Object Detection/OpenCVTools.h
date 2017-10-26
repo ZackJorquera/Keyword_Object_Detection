@@ -4,7 +4,7 @@
 #include "opencv2/core/traits.hpp"
 #include <list>
 
-#include "Trainer.h"
+#include "Tools.h"
 
 #pragma once
 
@@ -15,7 +15,7 @@ void showImage(cv::Mat* img);
 cv::Mat GetGradientImage(cv::Mat);
 
 //template<typename _Tp>
-cv::Mat MakeMatFromRange(cv::Point start, cv::Point end, cv::Mat* image);
+cv::Mat MakeMatFromRange(cv::Point start, cv::Point end, cv::Mat* image, bool ShowImages);
 
 bool DoesCorrelationReachThreshold(cv::Mat image, cv::Mat templ, float maxRot, float threshold, cv::Point *location, bool scaleImg2ToMatchRows);
 
@@ -25,8 +25,8 @@ cv::Mat TotalMatAddByOne(cv::Mat image);
 
 cv::Mat correlateWithConvolution(cv::Mat src, cv::Mat templ);
 
-cv::Mat HoughFeatureAccumulater(std::list<feature> features, cv::Mat src, float PresentOfImageForAccumulaterBinSizeForOutput);
+cv::Mat HoughFeatureAccumulater(std::list<feature> features, cv::Mat src, float PresentOfImageForAccumulaterBinSizeForOutput, int removeRadius, bool ShowImages);
 
-std::list<std::pair<float, cv::Point>> FindPeaks(cv::Mat image, int numOfPoints, float peakAmountThreshold);
+std::list<std::pair<float, cv::Point>> FindPeaks(cv::Mat image, int numOfPoints, float peakAmountThreshold, int removeRadius);
 
 cv::Mat DrawPointOnImage(cv::Mat src, cv::Point p, cv::Scalar color, int size);

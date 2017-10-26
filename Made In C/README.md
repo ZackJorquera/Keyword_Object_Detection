@@ -1,4 +1,4 @@
-# Documentation
+# Build log
 
 ## Getting OpenCV to work with vs2017 (Visual Studios 2017)
 This was a long process, and some issues were not well-documented due to the fact that the documentation was made for the 2010 version. In the end, everything works fine. The original documentation can be found [here](http://docs.opencv.org/2.4/doc/tutorials/introduction/windows_visual_studio_Opencv/windows_visual_studio_Opencv.html). The steps to get this to work are as follow:
@@ -54,3 +54,21 @@ I have also started to use boost to write to the files.
 
 ## Detection
 This function just reads the data from the saved feature folders and then finds the thing with the keywords. For reading the folder system, I used boost because its simplicity in doing things like this.  The function that accumulates the possible locations for the objects is roughly what was in the line and circle finding algorithm which means this it was fairly simple to make the accumulator. To make it even easier I used OpenCV's pre-build matchTemplate function.
+
+## Detection 2
+for now i just have it drawing a dot and with testing it can succesfuly find cars.
+
+
+
+# Documentation
+This code has two parts:
+1. The Trainer
+     1. Take input of n training images of which it finds the most edgy images as features then is finds 
+     2. part 2
+     3. part 3
+     4. Writes the keywords to a file
+2. The Detector
+     1. part 1
+     2. part 2
+     3. part 3
+     4. part 4

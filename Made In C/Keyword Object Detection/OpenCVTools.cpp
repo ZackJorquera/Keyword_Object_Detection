@@ -5,7 +5,7 @@
 #include <array>
 
 #include "OpenCVTools.h"
-#include "Trainer.h"
+#include "Tools.h"
 #include <ppl.h>
 
 #include "boost\uuid\uuid.hpp"
@@ -93,7 +93,7 @@ Mat GetGradientImage(Mat grayScaleImage)
 }
 
 //template<typename _Tp> inline
-cv::Mat MakeMatFromRange(cv::Point start, cv::Point end, cv::Mat* image)
+cv::Mat MakeMatFromRange(cv::Point start, cv::Point end, cv::Mat* image, bool ShowImages)
 {
 	try
 	{
@@ -118,8 +118,11 @@ cv::Mat MakeMatFromRange(cv::Point start, cv::Point end, cv::Mat* image)
 			}
 		}
 
-		//showImage(&Range);
-		//cv::waitKey(0);
+		if (ShowImages)
+		{
+			showImage(&Range);
+			cv::waitKey(0);
+		}
 
 		return Range;
 	}
@@ -130,7 +133,7 @@ cv::Mat MakeMatFromRange(cv::Point start, cv::Point end, cv::Mat* image)
 	}
 }
 
-void doOneCorrelation(Mat *image, Mat *templ, float maxRot, Point p, Mat *result)
+void DoOneCorrelation(Mat *image, Mat *templ, float maxRot, Point p, Mat *result)
 {
 	int sharedPixels = 0;
 	double correlation = 0;
@@ -173,7 +176,7 @@ bool DoesCorrelationReachThreshold(Mat image, Mat templ, float maxRot, float thr
 		{
 			for (int x = 0; x < image.cols; x++)
 			{
-				doOneCorrelation(&image, &templ, maxRot, Point(x, y), &result);
+				DoOneCorrelation(&image, &templ, maxRot, Point(x, y), &result);
 			}
 		});
 
@@ -355,7 +358,7 @@ Mat correlateWithConvolution(Mat src, Mat templ)
 	}
 }
 
-Mat HoughFeatureAccumulater(list<feature> features, Mat src, float PresentOfBinSizeForOutput)
+Mat HoughFeatureAccumulater(list<feature> features, Mat src, float PresentOfBinSizeForOutput, int removeRadius, bool ShowImages)
 {
 	Mat H(floor(1 / double(PresentOfBinSizeForOutput)), floor(1 / double(PresentOfBinSizeForOutput)), cv::DataType<double>::type, cv::Scalar(0));
 	int HRowSize = int(ceil(double(src.rows) * double(PresentOfBinSizeForOutput)));
@@ -365,21 +368,22 @@ Mat HoughFeatureAccumulater(list<feature> features, Mat src, float PresentOfBinS
 	{
 		Mat result = correlateWithConvolution(src, thisFeature.grayScale);
 
-		/*
-		showImage(&result);
-		showImage(&thisFeature.grayScale);
-		showImage(&src);
-		waitKey(0);
+		//*
+		if (ShowImages)
+		{
+			showImage(&result);
+			showImage(&thisFeature.grayScale);
+			showImage(&src);
+			waitKey(0);
+		}
 		//*/
 
-		list<pair<float, Point>> pixels = FindPeaks(result, -1, 0.9);//0.9
+		list<pair<float, Point>> pixels = FindPeaks(result, -1, 0.85, removeRadius);//0.9 Config
 		
 		if (pixels.size() > 0)
 		{
-			pixels.sort(useValue);
-
 			list<pair<float, Point>>::iterator iter = pixels.begin();
-			for (int i = 0; i < 3; i++)//TODO: from config also ingnor surounding pixels
+			for (int i = 0; i < 3; i++)//TODO: from config
 			{
 				for each (std::array<int, 4> range in thisFeature.ranges)
 				{
@@ -411,7 +415,7 @@ bool useValue(const pair<float, Point>& first, const pair<float, Point>& second)
 	return (first.first > second.first);
 }
 
-list<pair<float, Point>> FindPeaks(Mat image, int numOfPoints, float peakAmountThreshold)
+list<pair<float, Point>> FindPeaks(Mat image, int numOfPoints, float peakAmountThreshold, int removeRadius)
 {
 	list<pair<float, Point>> allPeaks;
 	for (int x = 0; x < image.cols; x++)
@@ -426,13 +430,13 @@ list<pair<float, Point>> FindPeaks(Mat image, int numOfPoints, float peakAmountT
 			case DataType<float>::depth:
 				p = Point(x, y);
 				pixel = pair<float, Point>(image.at<float>(p), p);
-				if (pixel.first > peakAmountThreshold)//from config
+				if (pixel.first > peakAmountThreshold)
 					allPeaks.push_back(pixel);
 				break;
 			case DataType<double>::depth:
 				p = Point(x, y);
 				pixel = pair<float, Point>(float(image.at<double>(p)), p);
-				if (pixel.first > int(peakAmountThreshold))//from config
+				if (pixel.first > int(peakAmountThreshold))
 					allPeaks.push_back(pixel);
 				break;
 			default:
@@ -478,7 +482,7 @@ list<pair<float, Point>> FindPeaks(Mat image, int numOfPoints, float peakAmountT
 				continue;
 			}
 
-			int removeRadius = 31;
+			//int removeRadius = 31;
 			for (int surroundingX = -removeRadius; surroundingX <= removeRadius; surroundingX++)//TODO: config
 			{
 				for (int surroundingY = -removeRadius; surroundingY <= removeRadius; surroundingY++)

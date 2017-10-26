@@ -24,4 +24,5 @@ enum ConfigVarsID
 
 void MakeConfigFile();
 void ReadConfig();
+void RemoveConfig();
 std::stringstream GetConfigVarsFromID(int id);

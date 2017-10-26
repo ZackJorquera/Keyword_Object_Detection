@@ -38,35 +38,50 @@ void MakeConfigFile()
 	myfile.close();
 }
 
+void RemoveConfig()
+{
+	remove(fileName.c_str());
+}
+
 void ReadConfig()
 {
-	struct stat buffer;
-	if (stat(fileName.c_str(), &buffer) != 0)//if file does not exists
-		MakeConfigFile();
-
-	std::ifstream myfile(fileName, std::ifstream::in);
-	while (!myfile.eof())
+	try
 	{
-		std::string s;
-		myfile >> s;
-		
-		if (s == "")
-			continue;
+		struct stat buffer;
+		if (stat(fileName.c_str(), &buffer) != 0)//if file does not exists
+			MakeConfigFile();
 
-		std::list<std::string> parts = SplitString(s, "<>, ");
-		std::string name(*parts.begin());
-		std::stringstream snum(*++parts.begin());
-		int num;
-		snum >> num;
-		std::string value(*++++parts.begin());
-		std::string ender(*++++++parts.begin());
+		std::ifstream myfile(fileName, std::ifstream::in);
+		while (!myfile.eof())
+		{
+			std::string s;
+			myfile >> s;
 
-		if("/" + name == ender)//if name is the enum
-			ConfigVals2[num] = value;
-		else
-			ConfigVals2[num] = "";
+			if (s == "")
+				continue;
+
+			std::list<std::string> parts = SplitString(s, "<>, ");
+			std::string name(*parts.begin());
+			std::stringstream snum(*++parts.begin());
+			int num;
+			snum >> num;
+			std::string value(*++++parts.begin());
+			std::string ender(*++++++parts.begin());
+
+			if ("/" + name == ender)//if name is the enum
+				ConfigVals2[num] = value;
+			else
+				ConfigVals2[num] = "";
+		}
+		myfile.close();
 	}
-	myfile.close();
+	catch (std::exception ex)
+	{
+		std::cout << "Failed to read config, Retrying\nErr: " << ex.what() << std::endl;
+		RemoveConfig();
+		MakeConfigFile();
+		ReadConfig();
+	}
 }
 
 std::stringstream GetConfigVarsFromID(int id)

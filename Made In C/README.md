@@ -55,6 +55,7 @@ I have also started to use boost to write to the files.
 ## Detection
 This function just reads the data from the saved feature folders and then finds the thing with the keywords. For reading the folder system, I used boost because its simplicity in doing things like this.  The function that accumulates the possible locations for the objects is roughly what was in the line and circle finding algorithm which means this it was fairly simple to make the accumulator. To make it even easier I used OpenCV's pre-build matchTemplate function.
 
+<<<<<<< HEAD
 ## Detection 2
 for now i just have it drawing a dot and with testing it can succesfuly find cars.
 
@@ -72,3 +73,4 @@ This code has two parts:
      2. part 2
      3. part 3
      4. part 4
+

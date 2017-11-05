@@ -9,7 +9,9 @@ int main(int argNums, char** argv)
 {
 	if (argNums < 2)
 	{
-		cout << "Use \"train\" to select training mode and \"find\" to select detection Mode" << endl;
+		cout << "When calling the command use \"train\" to select training mode and \"find\" to select detection Mode." <<
+			"For both options, you can add -s to show images along the way; this is not recommended for the training mode." <<
+			"You can also use -ls to show just the last image." << endl;
 		return -1;
 	}
 
@@ -24,7 +26,10 @@ int main(int argNums, char** argv)
 	else if (string(argv[1]) == "find")
 	{
 		cout << "Detection Mode:" << endl;
-		return Find("");
+		if (argNums > 2)
+			return Find(string(argv[2]));
+		else
+			return Find("");
 	}
 	else
 	{

@@ -5,7 +5,6 @@
 #include <array>
 
 #include "OpenCVTools.h"
-#include "Tools.h"
 #include <ppl.h>
 
 #include "boost\uuid\uuid.hpp"

@@ -15,6 +15,7 @@
 #include "OpenCVTools.h"
 #include "ConfigReader.h"
 
+
 using namespace std;
 using namespace cv;
 
@@ -23,7 +24,8 @@ list<pair<string, string>> GetFilePathsFromObjectNames(list<string> objects);
 list<feature> CreateFeaturesFromFolderPath(string folderPath);
 Mat DrawOnImage(Mat src, float PresentOfBinSizeForOutput, list<pair<float, Point>> peaks);
 
-bool ShowWorkImages;
+bool ShowImages;
+bool JustShowLastImage;
 
 int Find(string arg)
 {
@@ -41,9 +43,14 @@ int Find(string arg)
 
 	cin >> imageFile;
 
-	ShowWorkImages = (arg == "-s");
+	ShowImages = (arg == "-s");
+	JustShowLastImage = (arg == "-ls");
 
 	thingsToFind = GetObjectsToFind();
+
+	string path;
+	cout << "What is the filePath to save to:";
+	cin >> path;
 
 	list<string> tempList;
 	tempList.push_back(imageFile);
@@ -66,10 +73,10 @@ int Find(string arg)
 		int standerdRemoveRadius;
 		GetConfigVarsFromID(RadiusSurroundingPeaksToRemoveDetector) >> standerdRemoveRadius;
 
-		Mat accumulatedDataForObject = HoughFeatureAccumulater(thisObjectFeatures, grayImage, PresentOfBinSizeForOutput, standerdRemoveRadius, ShowWorkImages);
+		Mat accumulatedDataForObject = HoughFeatureAccumulater(thisObjectFeatures, grayImage, PresentOfBinSizeForOutput, standerdRemoveRadius, ShowImages);
 
 		//*
-		if (ShowWorkImages)
+		if (ShowImages)
 		{
 			Mat theShowImage;
 			accumulatedDataForObject.copyTo(theShowImage);
@@ -85,9 +92,21 @@ int Find(string arg)
 
 		++objectIter;
 	}
-
-	showImage(&colorImage);
-	waitKey(0);
+	try
+	{
+		imwrite(path, colorImage);
+	}
+	catch(Exception ex)
+	{
+		cout << "failed to save to fIle, enter ne adress:";
+		cin >> path;
+		imwrite(path, colorImage);
+	}
+	if (ShowImages || JustShowLastImage)
+	{
+		showImage(&colorImage);
+		waitKey(0);
+	}
 
 	return 0;
 }

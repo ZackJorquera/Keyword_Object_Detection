@@ -55,9 +55,7 @@
       <AdditionalDependencies>opencv_world330d.lib;libboost_filesystem-vc140-mt-gd-1_63.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>copy "$(ProjectDir)..\packages\opencv_world330d.dll" "$(TargetDir)";
-copy "$(ProjectDir)..\packages\libbson-1.0.dll" "$(TargetDir)"; 
-copy "$(ProjectDir)..\packages\libmongoc-1.0.dll" "$(TargetDir)";</Command>
+      <Command>copy "$(ProjectDir)..\packages\opencv_world330d.dll" "$(TargetDir)";</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -76,9 +74,7 @@ copy "$(ProjectDir)..\packages\libmongoc-1.0.dll" "$(TargetDir)";</Command>
       <AdditionalDependencies>opencv_world330.lib;libboost_system-vc140-mt-1_63.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>copy "$(ProjectDir)..\packages\opencv_world330.dll" "$(TargetDir)";
-copy "$(ProjectDir)..\packages\libbson-1.0.dll" "$(TargetDir)"; 
-copy "$(ProjectDir)..\packages\libmongoc-1.0.dll" "$(TargetDir)";</Command>
+      <Command>copy "$(ProjectDir)..\packages\opencv_world330.dll" "$(TargetDir)";</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

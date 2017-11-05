@@ -14,19 +14,21 @@
 #include "Trainer.h"
 #include "OpenCVTools.h"
 #include "ConfigReader.h"
+#include "Tools.h"
 
 using namespace std;
 
 
 void GetInputImages(list<string>* imageFiles);
 bool useRating(const feature& first, const feature& second);
-void CorrelateImageFeatures(list<feature>* keyFeatures);
+list<feature> CorrelateImageFeatures(list<feature>* keyFeatures);
 list<feature> CorrelateFeaturesCrossImage(list<list<feature>>* featuresForEachImage);
 list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists, int thresholdOfSharedImages);
 int SaveMultipleAsImgFiles(std::string folderPath, std::string folderName, std::list<feature>* images);
 int SaveOneAsImgFile(std::string folderPath, std::string folderName, feature* image);
 
-bool ShowImages;
+bool ShowImagesT;
+bool JustShowLastImageT;
 
 
 int Train(string arg)
@@ -46,9 +48,10 @@ int Train(string arg)
 
 	grayScaleimages = LoadImages(imageFiles, cv::IMREAD_GRAYSCALE);
 
-	ShowImages = (arg == "-s");
+	ShowImagesT = (arg == "-s");
+	JustShowLastImageT = (arg == "-sl");
 	//*
-	if (ShowImages)//shows the "keywords"
+	if (ShowImagesT)//shows the "keywords"
 	{
 		showImages(&grayScaleimages);
 		cv::waitKey(0);
@@ -71,10 +74,10 @@ int Train(string arg)
 	list<cv::Mat>::iterator it = grayScaleimages.begin(); ////(*it) is the object in the list at i
 	for (int i = 0; i < grayScaleimages.size(); i++)
 	{
-		list<feature> t = GetMostImportantPartsOfImage(&*it, maxFeatures, xStepSizePersentOfImage, 0, 0, thresholdPresent,maxfeatureSizeInSteps,minfeatureSizeInSteps);
+		list<feature> t = GetMostImportantPartsOfImage(&*it, maxFeatures, xStepSizePersentOfImage, 0, 0, thresholdPresent, maxfeatureSizeInSteps,minfeatureSizeInSteps);
 		keyFeaturesPerImage.push_back(t);
 
-		//*//shows the images in t
+		/*//shows the images in t
 		if (ShowImages)
 		{
 			list<feature>::iterator it2 = t.begin(); // this is how you read through a list in c++
@@ -92,7 +95,7 @@ int Train(string arg)
 	list<list<feature>>::iterator keyFeaturesIterator = keyFeaturesPerImage.begin();//*it2
 	for (int i = 0; i < keyFeaturesPerImage.size(); i++)
 	{
-		CorrelateImageFeatures(&*keyFeaturesIterator);
+		*keyFeaturesIterator = CorrelateImageFeatures(&*keyFeaturesIterator);
 		++keyFeaturesIterator;
 		//see if there are any duplicets in the list like two tires on a car and combine them this means there will be a list of vetor range things
 	}
@@ -106,7 +109,7 @@ int Train(string arg)
 	SaveMultipleAsImgFiles(folderPath, objectName, &keywords);
 
 	//*
-	if (ShowImages)
+	if (ShowImagesT || JustShowLastImageT)
 	{
 		for (list<feature>::iterator iter = keywords.begin(); iter != keywords.end(); ++iter)
 		{
@@ -119,7 +122,7 @@ int Train(string arg)
 	return 0;
 }
 
-void CorrelateImageFeatures(list<feature>* keyFeatures)
+list<feature> CorrelateImageFeatures(list<feature>* keyFeatures)
 {
 	list<list<pair<feature*, cv::Point>>> keywordLists;
 
@@ -148,7 +151,7 @@ void CorrelateImageFeatures(list<feature>* keyFeatures)
 
 		++featureIterator;
 	}
-	*keyFeatures = CreateKeywords(keywordLists, 0);
+	return CreateKeywords(keywordLists, 0);
 
 }
 
@@ -174,7 +177,10 @@ void GetInputImages(list<string>* imageFiles)
 	}
 }
 
-list<feature> GetMostImportantPartsOfImage(cv::Mat *grayImage, int maxFeatures, float xStepSizePersentOfImage, float maxRot, float rotStep, float thresholdPresent, int maxfeatureSizeInSteps, int minfeatureSizeInSteps)
+list<feature> GetMostImportantPartsOfImage(
+	cv::Mat *grayImage, int maxFeatures, float xStepSizePersentOfImage, 
+	float maxRot, float rotStep, float thresholdPresent, int maxfeatureSizeInSteps, 
+	int minfeatureSizeInSteps)
 {
 	using namespace cv;
 	Mat gradImg;
@@ -190,8 +196,18 @@ list<feature> GetMostImportantPartsOfImage(cv::Mat *grayImage, int maxFeatures, 
 			for (int s = minfeatureSizeInSteps; s < maxfeatureSizeInSteps; s++)
 			{
 				feature f;
-				f.gradientImage = MakeMatFromRange(cv::Point(x * pixelsPerStep, y * pixelsPerStep), cv::Point((x + s) * pixelsPerStep, (y + s) * pixelsPerStep), &gradImg, ShowImages);
-				f.grayScale = TotalMatAddByOne(MakeMatFromRange(cv::Point(x * pixelsPerStep, y * pixelsPerStep), cv::Point((x + s) * pixelsPerStep, (y + s) * pixelsPerStep), grayImage, ShowImages));
+				f.gradientImage = MakeMatFromRange(
+					cv::Point(x * pixelsPerStep, y * pixelsPerStep), 
+					cv::Point((x + s) * pixelsPerStep, (y + s) * pixelsPerStep), 
+					&gradImg, 
+					ShowImagesT);
+
+				f.grayScale = TotalMatAddByOne(MakeMatFromRange(
+					cv::Point(x * pixelsPerStep, y * pixelsPerStep), 
+					cv::Point((x + s) * pixelsPerStep, (y + s) * pixelsPerStep), 
+					grayImage, 
+					ShowImagesT));
+
 				f.GetRating();
 				if (f.rating < thresholdPresent)
 					continue;
@@ -298,18 +314,17 @@ list<feature> CreateKeywords(list<list<pair<feature*, cv::Point>>> keywordLists,
 						1 - (1 / (float(j) + 1)), 
 						true);
 
-					featuresAlreadyInKeywords.push_back(keywordImageIterator->first);//TODO: make it not work if it is in this
+					featuresAlreadyInKeywords.push_back(keywordImageIterator->first);
 					
 					for each (array<int, 4> range in keywordImageIterator->first->ranges)
 						thisFeature.ranges.push_back(range);
-
-					//TODO: add range vectors
-					if(ShowImages)
+					
+					if(ShowImagesT)
 						showImage(&(keywordImageIterator->first->grayScale));
 
 					++keywordImageIterator;
 				}
-				if (ShowImages)
+				if (ShowImagesT)
 				{
 					showImage(&keywordIterator->begin()->first->grayScale);
 					showImage(&thisFeature.grayScale);

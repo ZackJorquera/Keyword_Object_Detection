@@ -48,3 +48,62 @@ list<string> SplitString(string text, string spliters)
 
 	return strings;
 }
+
+string TrimEnds(string text, string chars)
+{
+	if (text == "")
+		return "";
+
+	string TrimText = text;
+	string::iterator frontIter = TrimText.begin();
+	string::iterator backIter = --TrimText.end();
+	int NewStartVal;
+	int NewEndVal;
+	const size_t valsInChars = chars.size();
+
+	for (NewStartVal = 0; NewStartVal < TrimText.size(); NewStartVal++)
+	{
+		bool isInChars = false;
+		for (int i = 0; i < valsInChars; i ++)
+		{
+			if (*frontIter == chars[i])
+				isInChars = true;
+		}
+		if (!isInChars)
+			break;
+		++frontIter;
+	}
+	for (NewEndVal = TrimText.size() -1; NewEndVal >= 0; NewEndVal++)
+	{
+		bool isInChars = false;
+		for (int i = 0; i < valsInChars; i++)
+		{
+			if (*backIter == chars[i])
+				isInChars = true;
+		}
+		if (!isInChars)
+			break;
+		--backIter;
+	}
+	try
+	{
+		if (NewEndVal != TrimText.size() - 1)
+		{
+			++backIter;
+			TrimText.erase(backIter, TrimText.end());
+		}
+		if (NewStartVal != 0)
+		{
+			--frontIter;
+			if (NewStartVal > 1)
+				TrimText.erase(TrimText.begin(), frontIter);
+			else
+				TrimText.erase(frontIter);
+		}
+	}
+	catch (exception ex)
+	{
+		return text;
+	}
+	return TrimText;
+}

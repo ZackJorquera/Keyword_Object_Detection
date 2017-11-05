@@ -49,7 +49,7 @@ int Train(string arg)
 	grayScaleimages = LoadImages(imageFiles, cv::IMREAD_GRAYSCALE);
 
 	ShowImagesT = (arg == "-s");
-	JustShowLastImageT = (arg == "-sl");
+	JustShowLastImageT = (arg == "-ls");
 	//*
 	if (ShowImagesT)//shows the "keywords"
 	{

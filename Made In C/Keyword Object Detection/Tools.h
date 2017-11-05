@@ -31,3 +31,5 @@ struct feature
 };
 
 std::list<std::string> SplitString(std::string text, std::string spliters);
+
+std::string TrimEnds(std::string text, std::string chars);

@@ -26,6 +26,9 @@ list<Mat> LoadImages(list<string> paths, ImreadModes im)
 	{
 		if (path == "")
 			continue;
+		
+		path = TrimEnds(path, string("\"\'").c_str());
+
 		Mat temp = imread(path, im);
 		if (temp.dims != 0)
 		{
@@ -429,13 +432,13 @@ list<pair<float, Point>> FindPeaks(Mat image, int numOfPoints, float peakAmountT
 			case DataType<float>::depth:
 				p = Point(x, y);
 				pixel = pair<float, Point>(image.at<float>(p), p);
-				if (pixel.first > peakAmountThreshold)
+				if (pixel.first >= peakAmountThreshold)
 					allPeaks.push_back(pixel);
 				break;
 			case DataType<double>::depth:
 				p = Point(x, y);
 				pixel = pair<float, Point>(float(image.at<double>(p)), p);
-				if (pixel.first > int(peakAmountThreshold))
+				if (pixel.first >= int(peakAmountThreshold))
 					allPeaks.push_back(pixel);
 				break;
 			default:

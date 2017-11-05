@@ -41,16 +41,17 @@ int Find(string arg)
 
 	cout << "Image file location: ";
 
-	cin >> imageFile;
+	getline(cin, imageFile);
 
 	ShowImages = (arg == "-s");
 	JustShowLastImage = (arg == "-ls");
 
-	thingsToFind = GetObjectsToFind();
-
 	string path;
 	cout << "What is the filePath to save to:";
-	cin >> path;
+	getline(cin, path);
+	path = TrimEnds(path, string("\"").c_str());
+
+	thingsToFind = GetObjectsToFind();
 
 	list<string> tempList;
 	tempList.push_back(imageFile);
@@ -86,7 +87,7 @@ int Find(string arg)
 		}
 		//*/
 
-		list<pair<float, Point>> peaks = FindPeaks(accumulatedDataForObject, numPoints, NumOfPeaksToBeObject, standerdRemoveRadius);//TODO: config
+		list<pair<float, Point>> peaks = FindPeaks(accumulatedDataForObject, numPoints, NumOfPeaksToBeObject, standerdRemoveRadius);
 
 		colorImage = DrawOnImage(colorImage, PresentOfBinSizeForOutput, peaks);
 
@@ -136,6 +137,7 @@ list<string> GetObjectsToFind()
 		{
 			object = "";
 			getline(cin, object);
+			object = TrimEnds(object, string("\"").c_str());
 			if (object != "")
 				objectNames.push_back(object);
 		}

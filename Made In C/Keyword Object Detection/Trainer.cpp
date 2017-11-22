@@ -30,8 +30,9 @@ int SaveOneAsImgFile(std::string folderPath, std::string folderName, feature* im
 bool ShowImagesT;
 bool JustShowLastImageT;
 
+string runPath;
 
-int Train(string arg)
+int Train(string arg, string path)
 {
 	ReadConfig();
 
@@ -67,6 +68,11 @@ int Train(string arg)
 	GetConfigVarsFromID(PercentOfImageWidthIsStepSizeTrainer) >> xStepSizePersentOfImage;
 	GetConfigVarsFromID(FeatureComplexityThresholdTrainer) >> thresholdPresent;
 	GetConfigVarsFromID(KeywordFolderPath) >> folderPath;
+
+	runPath = path;
+	string::iterator i(runPath.end());
+	for (i; (*i) != '\\' && i != runPath.begin(); --i) {}
+	runPath.erase(i, runPath.end());
 
 	list<list<feature>> keyFeaturesPerImage;
 
@@ -106,6 +112,7 @@ int Train(string arg)
 	else if (keyFeaturesPerImage.size() == 1)
 		keywords = *keyFeaturesPerImage.begin();
 
+	cout << "saving Files." << endl;
 	SaveMultipleAsImgFiles(folderPath, objectName, &keywords);
 
 	//*
@@ -351,13 +358,33 @@ int SaveMultipleAsImgFiles(std::string folderPath, std::string folderName, std::
 
 int SaveOneAsImgFile(std::string folderPath, std::string folderName, feature* image)
 {
-	boost::filesystem::path dir(folderPath + folderName);
-	if (!boost::filesystem::exists(dir))
-		if (!boost::filesystem::create_directory(dir))
-			return -1;
+	try
+	{
+		if (folderPath[0] == '\\' || folderPath[0] == '.')
+			if(runPath == "\\" || runPath == "")
+				folderPath = (TrimEnds(folderPath, "\\") + "\\");
+			else
+				folderPath = (runPath + TrimEnds(folderPath, "\\") + "\\");
+
+		boost::filesystem::path dir(folderPath);
+		if (!boost::filesystem::exists(dir))
+			if (!boost::filesystem::create_directory(dir))
+				return -1;
+
+		dir = (folderPath + folderName);
+		if (!boost::filesystem::exists(dir))
+			if (!boost::filesystem::create_directory(dir))
+				return -1;
+	}
+	catch (const boost::filesystem::filesystem_error& ex)
+	{
+		cout << ex.what() << endl;
+	}
 
 	boost::uuids::uuid uuid = boost::uuids::random_generator()();
 	std::string filePath = folderPath + folderName + "\\" + to_string(uuid) + ".jpg";
+
+	cout << filePath << endl;
 
 	imwrite(filePath, image->grayScale);
 

@@ -19,9 +19,9 @@ int main(int argNums, char** argv)
 	{
 		cout << "Training Mode:" << endl;
 		if (argNums > 2)
-			return Train(string(argv[2]));
+			return Train(string(argv[2]), string(argv[0]));
 		else
-			return Train("");
+			return Train("", string(argv[0]));
 	}
 	else if (string(argv[1]) == "find")
 	{

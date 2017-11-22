@@ -5,5 +5,5 @@
 
 #pragma once
 
-int Train(std::string);
+int Train(std::string, std::string runPath);
 std::list<feature> GetMostImportantPartsOfImage(cv::Mat *grayImage, int maxFeatures, float xStepSizePersentOfImage, float maxRot, float rotStep, float thresholdPresent, int maxfeatureSizeInSteps, int minfeatureSizeInSteps);

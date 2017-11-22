@@ -25,7 +25,7 @@ void MakeConfigFile()
 		"<MinStepSizeForFeatureTrainer,4>2</MinStepSizeForFeatureTrainer>\n"
 		"<ImageCorralationThresholdTrainer,5>0.85</ImageCorralationThresholdTrainer>\n"
 		"<CrossImageCorralationThresholdTrainer,6>0.75</CrossImageCorralationThresholdTrainer>\n"
-		"<KeywordFolderPath,7>C:\\KeywordImages\\</KeywordFolderPath>\n"
+		"<KeywordFolderPath,7>.\\KeywordImages\\</KeywordFolderPath>\n"
 		"<BinSizePercentOfImageDetector,8>0.002</BinSizePercentOfImageDetector>\n"
 		"<NumOfObjectsToFindPerObjectDetector,9>10</NumOfObjectsToFindPerObjectDetector>\n"
 		"<NumOfPeaksToBeObjectDetector,10>10</NumOfPeaksToBeObjectDetector>\n"
@@ -56,11 +56,19 @@ void ReadConfig()
 		{
 			std::string s;
 			myfile >> s;
+			while (s.size() > 0 && s[s.size() - 1] != '>')
+			{
+				std::string tempString;
+				if (myfile.eof())
+					break;
+				myfile >> tempString;
+				s += tempString;
+			}
 
 			if (s == "")
 				continue;
 
-			std::list<std::string> parts = SplitString(s, "<>, ");
+			std::list<std::string> parts = SplitString(s, "<>,");
 			std::string name(*parts.begin());
 			std::stringstream snum(*++parts.begin());
 			int num;

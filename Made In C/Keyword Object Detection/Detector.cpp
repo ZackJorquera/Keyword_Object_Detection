@@ -26,9 +26,16 @@ Mat DrawOnImage(Mat src, float PresentOfBinSizeForOutput, list<pair<float, Point
 
 bool ShowImages;
 bool JustShowLastImage;
+string RunPath;
 
-int Find(string arg)
+
+int Find(string arg, string dirpath)
 {
+	RunPath = dirpath;
+	string::iterator i(RunPath.end());
+	for (i; (*i) != '\\' && i != RunPath.begin(); --i) {}
+	RunPath.erase(i, RunPath.end());
+
 	ReadConfig();
 
 	string imageFile;
@@ -167,7 +174,7 @@ list<pair<string, string>> GetFilePathsFromObjectNames(list<string> objects)
 			{
 				pair<string, string> objectNameAndPath;
 				objectNameAndPath.first = *--(SplitString(dirIter->path().string(),"\\").end());
-				objectNameAndPath.second = (dirIter->path().string() + "\\");
+				objectNameAndPath.second = RunPath + (dirIter->path().string() + "\\");
 				objectFilePaths.push_back(objectNameAndPath);
 				cout << objectNameAndPath.first << endl;
 			}

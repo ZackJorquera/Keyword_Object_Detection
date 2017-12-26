@@ -2,4 +2,4 @@
 
 #pragma once
 
-int Find(std::string arg);
+int Find(std::string arg, std::string dirPath);

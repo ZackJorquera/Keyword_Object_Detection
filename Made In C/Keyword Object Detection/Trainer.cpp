@@ -364,7 +364,7 @@ int SaveOneAsImgFile(std::string folderPath, std::string folderName, feature* im
 			if(runPath == "\\" || runPath == "")
 				folderPath = (TrimEnds(folderPath, "\\") + "\\");
 			else
-				folderPath = (runPath + TrimEnds(folderPath, "\\") + "\\");
+				folderPath = (runPath + "\\" + TrimEnds(folderPath, "\\") + "\\");
 
 		boost::filesystem::path dir(folderPath);
 		if (!boost::filesystem::exists(dir))
